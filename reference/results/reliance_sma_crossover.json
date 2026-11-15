@@ -1,0 +1,10 @@
+{
+  "symbol": "RELIANCE.NS",
+  "strategy": "sma_crossover",
+  "source": "vectorbt 1.2.1 via reference/scripts/compare_vectorbt.py settings",
+  "bars": 4160,
+  "trade_records_including_open": 79,
+  "closed_trade_count": 78,
+  "final_equity": 291218.02995796944,
+  "relative_tolerance": 0.000001
+}

@@ -55,6 +55,11 @@
 - **Golden-file test:** comparing compiler output with a checked-in expected AST so accidental formatting or behavior changes are visible.
 - **Property-based fuzz test:** checking many generated graphs to find cases that hand-written examples may miss.
 - **Diagnostic:** an error or warning with a stable code, a beginner-friendly explanation, and a suggested next step.
+- **Web Worker:** a separate browser thread that can run the backtest without freezing the page controls.
+- **Transferable buffer:** an ArrayBuffer whose ownership moves between the page and worker, avoiding an extra structured-data clone.
+- **Cold-start time:** the first run time that includes loading and initializing WASM.
+- **Validity mask:** a byte array that tells whether each numeric metric is defined, preserving `null` without a NaN value.
+- **CORS origin:** the page's scheme, host, and port that FastAPI must allow before the browser can read an API response.
 - **Long-only:** a strategy can own shares or hold cash, but cannot profit from borrowed shares falling in price.
 - **Relative tolerance:** a comparison limit scaled to the size of the values being compared; a `1e-6` tolerance allows a difference of one millionth of the larger magnitude.
 - **Signal exit:** a sell instruction created by a strategy condition; AlgoTrace schedules it for the next bar's open.

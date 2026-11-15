@@ -1,3 +1,27 @@
+## 2026-11-15 — Prompt 5 browser thin slice
+
+### What was done
+- Built the React page for the spec SMA(10)/SMA(30) graph on the full frozen RELIANCE.NS history. It compiles through `@algotrace/compiler`, reads `VITE_API_URL` (default `http://127.0.0.1:8000`), and fetches AGT1 bytes from FastAPI.
+- Added a typed page/worker protocol. The API `ArrayBuffer` transfers to a dedicated worker, which writes prices once into WASM memory, runs the engine twice on initial load, and transfers result arrays back to Lightweight Charts.
+- Added the Indian charges checkbox, Indian rupee formatting, final equity/return/closed-trade/charge metrics, startup and second-run timing, and total time including fetch. API unavailable, missing symbol, worker and compiler errors have visible messages.
+- Added a Playwright test with `webServer` processes for API and Vite. Real Chromium verifies the reference result, 79 reference records vs 78 closed trades, chart rendering, the Zerodha rerun, and CORS plus the exposed bar-count header from both configured origins.
+- Added reference result JSON, decisions 035–038, phase 5 explanation, glossary and viva entries. Playwright remains local-only; revisit CI after the Python/data setup is available there.
+
+### Findings and fixes
+- Vectorbt stores 79 trade records, including the still-open final position. Spec metrics correctly report 78 closed trades. The UI displays both explicitly; the Playwright check compares final equity against the saved reference at `1e-6` relative tolerance and asserts both counts.
+- First browser-test attempt timed out because the Vite `webServer` command passed a literal `--`; changed it to `pnpm exec vite --host 0.0.0.0`.
+- The chart renders multiple canvases, so the browser assertion now checks that a chart canvas is visible instead of assuming exactly one canvas.
+- Playwright Chromium installation required network access and succeeded after the user approved the browser download. Local API/browser acceptance required loopback access.
+
+### Commands
+- `pnpm test` — passed; compiler 20 tests and web wrapper 3 tests.
+- `pnpm typecheck` — passed for compiler and web.
+- `pnpm test:wasm` — passed; real 20-bar WASM test and 3 compiler-to-WASM tests.
+- `pnpm --filter @algotrace/web test:e2e` — passed after the server command and chart assertion fixes (1 test passed; real browser and API flow).
+
+### TODO
+- Revisit running Playwright in CI when Python environment and frozen data can be provisioned there.
+
 ## 2026-11-15 — Prompt 3 TypeScript compiler
 
 ### What was done

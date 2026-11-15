@@ -28,3 +28,9 @@ It checks the graph shape, connects each input port, orders dependencies with Ka
 
 ## Why does the compiler stop after the first failing stage?
 Later checks can be confusing when an earlier structural rule is broken. The compiler reports every error in the earliest failing stage, sorts them by a fixed rule, then waits for the graph to be fixed before checking later stages.
+
+## Why does the browser run the engine in a Web Worker?
+The worker keeps CPU work away from the screen thread, so the page can still respond while the Rust/WASM engine runs. The page transfers the API ArrayBuffer to the worker; the worker writes those bytes once into WASM memory, copies the results into transferable arrays, and sends them back for charting.
+
+## Why does the reference say 79 trades while the page says 78 closed trades?
+The reference's 79 records include one position that remains open at the final bar. `/spec/metrics.md` counts closed trades only, so the engine reports 78 closed trades. The page shows the 79 total records separately and explains that the open position is excluded from the closed count.

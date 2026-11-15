@@ -30,12 +30,14 @@ api\.venv\Scripts\python -m pip install -r api\requirements.txt
 api\.venv\Scripts\python.exe api\scripts\download_nse.py # run once to recreate the frozen snapshot
 python -m venv reference\.venv
 reference\.venv\Scripts\python -m pip install -r reference\requirements.txt
-pnpm --filter @algotrace/web dev
+pnpm --filter @algotrace/web dev:demo
 pnpm test
 pnpm typecheck
 pnpm --filter @algotrace/web build
 pnpm build:wasm
 pnpm test:wasm
+pnpm --filter @algotrace/web exec playwright install chromium
+pnpm --filter @algotrace/web test:e2e
 api\.venv\Scripts\python -m pytest api\tests
 api\.venv\Scripts\python.exe -m uvicorn app.main:app --app-dir api --host 127.0.0.1 --port 8000
 reference\.venv\Scripts\python -m pytest reference\tests
@@ -54,7 +56,7 @@ pnpm --filter @algotrace/web build
 - Prompt 2 Parts A and B: done (2026-11-15; WASM package, visible HTML demo source, and eight full-history vectorbt comparisons plus one named SBIN stop-precedence exception (compared through bar 2501))
 - Prompt 3: done (2026-11-15; standalone multi-pass TypeScript compiler, graph fixtures, deterministic ASTs, fuzz tests, and real-WASM acceptance)
 - Prompt 4: done (2026-11-15; frozen data, AGT1 validation, FastAPI routes, local Uvicorn server, and tests verified)
-- Prompt 5: not started
+- Prompt 5: done (2026-11-15; React page, typed worker protocol, compiler-generated AST, full-history real API/WASM equity curve, startup/second-run timings, charges toggle, and local Chromium acceptance)
 - Prompt 6: not started
 - Prompt 7: not started
 - Prompt 8: not started
@@ -62,10 +64,10 @@ pnpm --filter @algotrace/web build
 - Prompt 10: not started
 
 ## Current state
-The Rust engine now parses and validates AGT1 data, evaluates strategies, simulates trades, computes metrics, and runs sweeps. Its wasm-bindgen API builds with wasm-pack for the web target, and the generated package is recreated under the Git-ignored `web/src/engine/pkg`. The wrapper has 3 passing mock-based tests; a separate Node integration test loads the generated binary and passes the shared 20-bar example (final equity Rs 1,250, one closed trade, Rs 0 charges). The plain HTML smoke page is ready at `/src/engine/wasm-test.html`. Part B reference scripts compare three strategies over full history on RELIANCE.NS, TCS.NS and SBIN.NS; eight vectorbt runs match exactly on trade dates/share counts and within `1e-6` on prices/equity. The SBIN stop strategy matches through bar 2501; bar 2502 (2020-03-02) is the named `scheduled_signal_exit_vs_intrabar_stop` exception. G15 is accepted and the engine behavior remains unchanged. A per-bar stop-array attempt did not disable vectorbt stop handling, so no workaround was added; see [decision 028](decisions/028-vectorbt-stop-order-precedence.md). `/data` has 16 validated AGT1 files (NIFTY 50 plus 15 requested stocks). The 15 stock files now have 4,160 bars each after removal of three shared zero-volume flat holiday dates; `^NSEI` has 4,142 bars. For index-to-stock comparisons, align on timestamps and forward-fill the index close, never align by bar position. Decision [025](decisions/025-align-index-stock-series.md) records the rule; the engine's same-stock buy-and-hold benchmark is unaffected. Decision [026](decisions/026-zero-volume-flat-bar-cleanup.md) records the repeatable 1e-9 relative-flatness cleanup. The standalone `@algotrace/compiler` exports `compile(graph, config)` for the AI graph format, with ordered validation/optimization passes, error fixtures for AT-E001–AT-E010, golden ASTs, and fast-check fuzz coverage. Root tests pass (20 compiler and 3 web wrapper tests), and the real-WASM integration checks all six RELIANCE.NS/TCS.NS strategy trade counts against the vectorbt yardsticks. UI canvas adaptation remains for later.
+The Rust engine now parses and validates AGT1 data, evaluates strategies, simulates trades, computes metrics, and runs sweeps. Its wasm-bindgen API builds with wasm-pack for the web target, and the generated package is recreated under the Git-ignored `web/src/engine/pkg`. The wrapper has 3 passing mock-based tests; a separate Node integration test loads the generated binary and passes the shared 20-bar example (final equity Rs 1,250, one closed trade, Rs 0 charges). The plain HTML smoke page is ready at `/src/engine/wasm-test.html`. Part B reference scripts compare three strategies over full history on RELIANCE.NS, TCS.NS and SBIN.NS; eight vectorbt runs match exactly on trade dates/share counts and within `1e-6` on prices/equity. The SBIN stop strategy matches through bar 2501; bar 2502 (2020-03-02) is the named `scheduled_signal_exit_vs_intrabar_stop` exception. G15 is accepted and the engine behavior remains unchanged. A per-bar stop-array attempt did not disable vectorbt stop handling, so no workaround was added; see [decision 028](decisions/028-vectorbt-stop-order-precedence.md). `/data` has 16 validated AGT1 files (NIFTY 50 plus 15 requested stocks). The 15 stock files now have 4,160 bars each after removal of three shared zero-volume flat holiday dates; `^NSEI` has 4,142 bars. For index-to-stock comparisons, align on timestamps and forward-fill the index close, never align by bar position. Decision [025](decisions/025-align-index-stock-series.md) records the rule; the engine's same-stock buy-and-hold benchmark is unaffected. Decision [026](decisions/026-zero-volume-flat-bar-cleanup.md) records the repeatable 1e-9 relative-flatness cleanup. The standalone `@algotrace/compiler` exports `compile(graph, config)` for the AI graph format, with ordered validation/optimization passes, error fixtures for AT-E001–AT-E010, golden ASTs, and fast-check fuzz coverage. Root tests pass (20 compiler and 3 web wrapper tests), and the real-WASM integration checks all six RELIANCE.NS/TCS.NS strategy trade counts against the vectorbt yardsticks. The React root page runs the reference SMA crossover through the compiler and a module worker, fetching full RELIANCE.NS AGT1 bytes from FastAPI and plotting returned equity with Lightweight Charts. It shows final equity, return, 78 closed trades (79 reference records including one open position), rupee charges, first and second WASM timings, and total time including fetch. The checkbox switches from `zero_costs` to `zerodha_equity_delivery`. `VITE_API_URL` defaults to `http://127.0.0.1:8000`; API CORS is limited to `http://127.0.0.1:5173` and `http://localhost:5173`. Real Chromium verifies both origins, chart, reference equity and trade counts, and positive charges on toggle. The run passed locally (20 compiler + 3 wrapper tests, typecheck, 4 real-WASM tests, and Playwright 1/1); Playwright stays out of CI per [decision 037](decisions/037-local-playwright-acceptance.md).
 
 ## Next step
-Continue with Prompt 5 when requested. Prompt 3 compiler behavior and graph-to-real-WASM trade-count acceptance are complete; the SBIN reference exception remains limited to comparison through bar 2501, as recorded in [decision 028](decisions/028-vectorbt-stop-order-precedence.md).
+Continue with Prompt 6 when requested. The Prompt 5 worker-backed RELIANCE.NS page and local real-browser acceptance are complete; the SBIN reference exception remains limited to comparison through bar 2501, as recorded in [decision 028](decisions/028-vectorbt-stop-order-precedence.md).
 
 ## Known issues and limitations
 - Python dependencies were installed and checked on Windows Python 3.13.6; the project brief also supports Python 3.11+.
@@ -85,3 +87,5 @@ Continue with Prompt 5 when requested. Prompt 3 compiler behavior and graph-to-r
 - `GROQ_API_KEY`
 - `GROQ_MODEL`
 
+
+- The web app reads `VITE_API_URL` with default `http://127.0.0.1:8000`; FastAPI currently allows only Vite origins `http://127.0.0.1:5173` and `http://localhost:5173`. Playwright checks both origins in Chromium. The page uses zero costs by default and displays 78 closed trades plus 79 total records (one is open).

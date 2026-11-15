@@ -8,6 +8,8 @@ target/
 dist/
 web/src/engine/pkg/
 coverage/
+playwright-report/
+test-results/
 .pytest_cache/
 .python-tmp/
 .mypy_cache/

@@ -21,6 +21,10 @@ Comparisons require exact entry/exit dates and share counts. Trade prices and ev
 
 Eight strategy/instrument pairs match over their complete histories. The SMA(10)/SMA(30) crossover and RSI(14) cross-below-30/cross-above-70 strategies match on all three stocks. The close-above/below-SMA(20) strategy with a 10% stop matches for RELIANCE.NS and TCS.NS. The SBIN.NS stop strategy is compared through bar 2501 and stops at the named exception on bar 2502 (2020-03-02): a scheduled signal exit is due at the open, and that bar's low also crosses the stop. Rust exits at the open (Rs 281.8838663839738); vectorbt's built-in stop processing exits at Rs 262.91332104510093. Close equity is Rs 228917.01286380854 in Rust and Rs 213512.9300486438 in vectorbt. An experiment setting a per-bar `sl_stop` array to `NaN` on scheduled-exit bars did not change vectorbt's stop fill. No custom callback was added. Accepted rule G15 and the named exception are recorded in [decision 028](../decisions/028-vectorbt-stop-order-precedence.md). Engine code was not changed.
 
+## Browser demo reference
+
+[`results/reliance_sma_crossover.json`](results/reliance_sma_crossover.json) stores the measured vectorbt 1.2.1 SMA(10)/SMA(30) result for all 4,160 RELIANCE.NS bars with Rs 100,000 initial capital, whole shares, next-open fills, zero fees and zero slippage, and no forced end close. The final equity is Rs 291,218.02995796944. The comparator's 79 trade records include one open end-of-data position; per `/spec/metrics.md`, only 78 closed trades count in `trade_count`. The page and Playwright test expose both meanings separately.
+
 ```mermaid
 flowchart LR
   Fixture[Strategy and bars] --> Engine[Rust engine result]

@@ -5,9 +5,11 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:demo": "pnpm --dir .. build:wasm && vite --host 0.0.0.0",
     "build": "tsc --noEmit && vite build",
-    "test": "vitest run --passWithNoTests --exclude **/*.integration.test.mjs",
+    "test": "vitest run --passWithNoTests --exclude **/*.integration.test.mjs --exclude e2e/**",
     "test:wasm": "vitest run src/engine/realWasm.integration.test.mjs src/engine/compilerWasm.integration.test.mjs",
+    "test:e2e": "pnpm --dir .. build:wasm && playwright test",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

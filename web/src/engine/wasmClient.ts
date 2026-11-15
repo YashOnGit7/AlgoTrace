@@ -187,10 +187,15 @@ export class WasmEngineClient {
    * @example `client.free();`
    */
   public free(): void {
-    // These calls release engine allocations; dropping references here avoids exposing stale view objects internally.
-    this.wasm.free_backtest_results();
+    this.freeBacktestResults();
     this.wasm.free_price_buffer();
     this.priceByteLength = 0;
+  }
+
+  /** Frees the latest result arrays while keeping the loaded price bytes ready for another config. @example `client.freeBacktestResults(); client.runBacktest(otherAst);` reruns the same data. */
+  public freeBacktestResults(): void {
+    // Releasing old output before a new run prevents worker-side WASM allocations from accumulating.
+    this.wasm.free_backtest_results();
   }
 }
 

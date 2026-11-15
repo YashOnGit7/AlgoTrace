@@ -4,19 +4,7 @@
  */
 import React from "react";
 import { createRoot } from "react-dom/client";
-
-/**
- * Displays the current scaffold state while project features are added phase by phase.
- * Example: rendering `<App />` shows the AlgoTrace heading and scaffold note.
- */
-function App(): React.JSX.Element {
-  return (
-    <main>
-      <h1>AlgoTrace</h1>
-      <p>The project scaffold is ready for the compiler and engine phases.</p>
-    </main>
-  );
-}
+import { App } from "./App.js";
 
 const rootElement = document.getElementById("root");
 
