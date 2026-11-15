@@ -16,3 +16,9 @@ yfinance is an unofficial source, and repeated downloads could change the inputs
 
 ## What is the main limitation of the stock list?
 It contains today's large companies, not the full set of companies that existed in each historical year. That creates survivorship bias and can make historical results look better than a point-in-time universe would.
+
+## Why did vectorbt differ from AlgoTrace on one SBIN trade?
+Both tools had a signal exit scheduled for the next open, and that bar's low later crossed the stop. Accepted rule G15 says the scheduled open exit wins, so AlgoTrace processed it first; vectorbt's built-in stop handling prioritized the intrabar stop. The exact exit prices and equity values are in decision 028, and the SBIN stop comparison is limited to bars through 2501.
+
+## What happened when you compared your engine to vectorbt, and what did you learn?
+Eight of the nine strategy and stock comparisons matched over the full history, including exact trade dates and share counts and prices/equity within `1e-6`. The remaining SBIN stop-strategy comparison matches through bar 2501. On bar 2502, a scheduled signal exit and an intrabar stop overlap: AlgoTrace exits at the open under G15, while vectorbt applies its built-in stop first. I tried disabling the stop with a per-bar stop array, but vectorbt still used it, so I documented a named exception instead of weakening the comparison or changing the engine. I learned that independent tools can implement different event priorities even with identical signals, and that those differences need explicit rules and transparent comparison boundaries.

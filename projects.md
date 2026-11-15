@@ -51,7 +51,7 @@ pnpm --filter @algotrace/web build
 ## Phase checklist (as of 2026-11-15)
 - Prompt 0: done (2026-11-14)
 - Prompt 1: done (2026-11-15)
-- Prompt 2 Part A: done (2026-11-15; WASM package, real integration test, and HTML demo source complete)
+- Prompt 2 Parts A and B: done (2026-11-15; WASM package, visible HTML demo source, and eight full-history vectorbt comparisons plus one named SBIN stop-precedence exception (compared through bar 2501))
 - Prompt 3: not started
 - Prompt 4: done (2026-11-15; frozen data, AGT1 validation, FastAPI routes, local Uvicorn server, and tests verified)
 - Prompt 5: not started
@@ -62,10 +62,10 @@ pnpm --filter @algotrace/web build
 - Prompt 10: not started
 
 ## Current state
-The Rust engine now parses and validates AGT1 data, evaluates strategies, simulates trades, computes metrics, and runs sweeps. Its wasm-bindgen API builds with wasm-pack for the web target, and the generated package is recreated under the Git-ignored `web/src/engine/pkg`. The wrapper has 3 passing mock-based tests; a separate Node integration test loads the generated binary and passes the shared 20-bar example (final equity Rs 1,250, one closed trade, Rs 0 charges). The plain HTML smoke page is ready at `/src/engine/wasm-test.html`; local page display could not be checked from this session because its browser and shell block loopback requests. `/data` has 16 validated AGT1 files (NIFTY 50 plus 15 requested stocks). The 15 stock files now have 4,160 bars each after removal of three shared zero-volume flat holiday dates; `^NSEI` has 4,142 bars. For index-to-stock comparisons, align on timestamps and forward-fill the index close, never align by bar position. Decision [025](decisions/025-align-index-stock-series.md) records the rule; the engine's same-stock buy-and-hold benchmark is unaffected. Decision [026](decisions/026-zero-volume-flat-bar-cleanup.md) records the repeatable 1e-9 relative-flatness cleanup. Full worker/UI integration and the compiler are still pending.
+The Rust engine now parses and validates AGT1 data, evaluates strategies, simulates trades, computes metrics, and runs sweeps. Its wasm-bindgen API builds with wasm-pack for the web target, and the generated package is recreated under the Git-ignored `web/src/engine/pkg`. The wrapper has 3 passing mock-based tests; a separate Node integration test loads the generated binary and passes the shared 20-bar example (final equity Rs 1,250, one closed trade, Rs 0 charges). The plain HTML smoke page is ready at `/src/engine/wasm-test.html`. Part B reference scripts compare three strategies over full history on RELIANCE.NS, TCS.NS and SBIN.NS; eight vectorbt runs match exactly on trade dates/share counts and within `1e-6` on prices/equity. The SBIN stop strategy matches through bar 2501; bar 2502 (2020-03-02) is the named `scheduled_signal_exit_vs_intrabar_stop` exception. G15 is accepted and the engine behavior remains unchanged. A per-bar stop-array attempt did not disable vectorbt stop handling, so no workaround was added; see [decision 028](decisions/028-vectorbt-stop-order-precedence.md). `/data` has 16 validated AGT1 files (NIFTY 50 plus 15 requested stocks). The 15 stock files now have 4,160 bars each after removal of three shared zero-volume flat holiday dates; `^NSEI` has 4,142 bars. For index-to-stock comparisons, align on timestamps and forward-fill the index close, never align by bar position. Decision [025](decisions/025-align-index-stock-series.md) records the rule; the engine's same-stock buy-and-hold benchmark is unaffected. Decision [026](decisions/026-zero-volume-flat-bar-cleanup.md) records the repeatable 1e-9 relative-flatness cleanup. Full worker/UI integration and the compiler are still pending.
 
 ## Next step
-Connect the frontend to `/api/symbols` and `/api/prices/{symbol}`, then continue the compiler phase.
+Continue with Prompt 3 when requested; the engine behavior and G15 same-bar precedence are accepted. The SBIN vectorbt stop exception remains limited to comparison through bar 2501, as recorded in [decision 028](decisions/028-vectorbt-stop-order-precedence.md).
 
 ## Known issues and limitations
 - Python dependencies were installed and checked on Windows Python 3.13.6; the project brief also supports Python 3.11+.
@@ -79,6 +79,7 @@ Connect the frontend to `/api/symbols` and `/api/prices/{symbol}`, then continue
 - Strict JSON files cannot contain comment headers; valid JSON files retain valid JSON syntax.
 - No ESLint dependency or configuration is present; the fixed dependency list does not include ESLint although the brief requires ESLint-clean code.
 - CI's TypeScript job now builds and runs the real WASM integration test after installing Rust's wasm target and wasm-pack 0.15.1; see [decision 027](decisions/027-pnpm-version-and-wasm-ci.md).
+- The reference comparison has eight complete matches and one named exception: SBIN.NS stop strategy, `scheduled_signal_exit_vs_intrabar_stop`, beginning at bar 2502 (2020-03-02). The run checks that strategy only through bar 2501. Accepted G15 specifies the engine priority; decision [028](decisions/028-vectorbt-stop-order-precedence.md) records vectorbt's different stop handling and the unsuccessful per-bar stop-array attempt. Engine behavior is unchanged.
 
 ## Environment variable names needed
 - `GROQ_API_KEY`

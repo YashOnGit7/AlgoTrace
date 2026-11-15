@@ -1,5 +1,46 @@
+## 2026-11-15 — G15 order precedence and vectorbt exception
+
+### What changed
+- Added G15 to `spec/trading-rules.md`: scheduled entries and signal exits fill at the open before stop/take-profit checks; a scheduled signal exit wins over a same-bar stop, including when the open gaps through the stop.
+- Kept engine implementation unchanged and added two hand-calculated Rust regression cases in `engine/tests/scheduled_exit_precedence.rs`. They verify the normal open-then-intrabar-stop overlap (9 shares sold at Rs 94.05, final equity Rs 937.45) and a gap below the stop with an already-scheduled exit (9 shares sold at Rs 79.20, final equity Rs 803.80).
+- Kept decision 028's measured explanation and marked it ACCEPTED. The vectorbt per-bar stop-array attempt (`NaN` on scheduled-exit bars) did not suppress its stop fill, so no custom callback or workaround was added.
+- The reference runner names the exception `scheduled_signal_exit_vs_intrabar_stop`: SBIN.NS stop-strategy parity is checked through bar 2501 only; the overlap starts at bar 2502, 2020-03-02. Eight other full-history pairs remain checked at exact dates/share counts and `1e-6` prices/equity tolerance.
+- Updated the phase 2 explanation, glossary, viva questions, reference README, and project state.
+
+### Commands and outcome
+- `cargo fmt --manifest-path engine\Cargo.toml -- --check` — exit 0; no output.
+- `cargo clippy --manifest-path engine\Cargo.toml --all-targets --all-features -- -D warnings` — exit 0; finished dev profile with no warnings.
+- `cargo test --manifest-path engine\Cargo.toml` — exit 0; all 37 tests passed (0 failed), doc tests 0.
+- `reference\.venv\Scripts\python.exe reference\scripts\compare_vectorbt.py --symbols RELIANCE.NS,TCS.NS,SBIN.NS` — exit 0; eight full-history PASS results, SBIN stop PASS through bar 2501 and one named exception at bar 2502.
 <!-- Purpose: keeps a newest-first verified work log for future sessions. Connects: completed changes and open work to projects.md. -->
 # Session notes
+
+## 2026-11-15 — Part B vectorbt reference checks
+
+### What was done
+- Added a Python comparison runner and Node bridge that runs the Rust/WASM engine and vectorbt on the same frozen AGT1 history and matching AST/spec signals.
+- Ran SMA(10)/SMA(30) crossovers, RSI(14) crossing below 30 and above 70, and close above/below SMA(20) with a 10% stop for RELIANCE.NS, TCS.NS and SBIN.NS (4,160 bars each).
+- Vectorbt settings: `init_cash=100000`, `size=1.0`, `size_type=percent`, `size_granularity=1.0`, `allow_partial=True`, `cash_sharing=False`, `direction=longonly`, `accumulate=False`, `upon_long_conflict=Ignore`, `price=open` with entry/exit signals shifted one bar, zero fees/fixed fees/slippage, and no forced end close. The stop run uses `sl_stop=0.10`, `FillPrice` and `StopMarket`.
+- Eight of nine comparisons matched. SBIN.NS stop strategy diverged at bar 2502, 2020-03-02: the 812-share trade entered 2020-02-19 at Rs 292.12591227233435. A signal exit from 2020-02-28 was due at the 2020-03-02 open. That bar was O/H/L/C = 281.8838663839738 / 282.7902453755621 / 257.45694149647136 / 260.4933166503906; the 10% stop was Rs 262.91332104510093. Rust exited at the open for a signal; vectorbt exited at the stop. Close equity was Rs 228917.01286380854 (Rust) and Rs 213512.9300486438 (vectorbt). Relative error was about 6.73%, against the unchanged `1e-6` tolerance.
+- `/spec/trading-rules.md` does not explicitly state priority when a signal exit is due at the open and the same bar later touches a stop. Recorded the measured difference and unresolved precedence gap in [decision 028](decisions/028-vectorbt-stop-order-precedence.md); engine and spec were not changed.
+- Updated `/reference/README.md`, `/docs/phase-2-explained.md`, and `projects.md`. The existing plain HTML page continues to load the real WASM engine and show the 20-bar example output.
+- Confirmed vectorbt imports successfully on Python 3.13.6; installed versions are pandas 3.1.1 and vectorbt 1.2.1.
+
+### Files touched
+- `reference/scripts/compare_vectorbt.py`, `reference/scripts/run_engine_wasm.mjs`, `reference/scripts/__init__.py`, `reference/tests/test_spec_signals.py`.
+- `reference/README.md`, `decisions/028-vectorbt-stop-order-precedence.md`, `docs/phase-2-explained.md`, `docs/glossary.md`, `docs/viva-questions.md`, `projects.md`, `notes.md`.
+
+### Commands that worked
+- `reference\.venv\Scripts\python.exe -m pytest reference\tests -q` — exit 0; 4 passed.
+- `reference\.venv\Scripts\python.exe reference\scripts\compare_vectorbt.py --symbols RELIANCE.NS,TCS.NS,SBIN.NS` — eight `PASS`; one `DIFF` at SBIN.NS 2020-03-02. Exit 1 is expected because the strict mismatch is preserved and documented.
+- `pnpm test:wasm` — exit 0; the actual WebAssembly module passed the 20-bar real-WASM integration test (1 test).
+- Python/Node syntax checks and `git diff --check` — exit 0.
+
+### Open questions for me
+- Should the simulator prioritize a previously scheduled signal exit at the next open before considering an intrabar stop on that same bar, or should a stop that is later hit during that bar take priority?
+
+### TODO for the next session
+- Wait for user review of decision 028 before making any engine or spec change.
 
 ## 2026-11-15 — Resolve pnpm version conflict and add real-WASM CI coverage
 

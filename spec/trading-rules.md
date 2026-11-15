@@ -17,3 +17,5 @@ Bars are daily; index `t` is a bar; signal series are computed with data up to t
 11. A signal on the final bar creates no order, because there is no next bar.
 12. If sell-side charges would make cash negative, reject the run before recording the sell; cash is never recorded below zero.
 
+13. **G15 — Order of events on one bar:** scheduled orders (entries and signal exits) fill at the open first. Stop-loss and take-profit apply only to a position that is still held after the open. If a scheduled signal exit and a stop trigger on the same bar, the signal exit at the open wins (fill = open x (1 - slippage), exit reason `signal`). If the open itself is already beyond the stop, the fill is still at the open with slippage, and the exit reason is `signal` when an exit was scheduled, otherwise `stop`.
+

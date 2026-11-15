@@ -45,4 +45,10 @@
 - **Frozen data:** a saved snapshot of market prices that does not change between local runs unless it is downloaded again.
 - **CORS:** a browser rule that controls which website origins may read responses from an API.
 - **Survivorship bias:** a historical-data problem caused by testing only companies that still exist or are large today, while excluding companies that disappeared or left an index.
+- **Vectorbt:** a Python portfolio backtesting library used here as an independent comparison for strategy trades and equity.
+- **Long-only:** a strategy can own shares or hold cash, but cannot profit from borrowed shares falling in price.
+- **Relative tolerance:** a comparison limit scaled to the size of the values being compared; a `1e-6` tolerance allows a difference of one millionth of the larger magnitude.
+- **Signal exit:** a sell instruction created by a strategy condition; AlgoTrace schedules it for the next bar's open.
 
+
+- **G15 scheduled-order precedence:** an entry or signal exit due at the open is processed before that bar's stop-loss or take-profit checks; a scheduled signal exit therefore wins over a same-bar stop.
