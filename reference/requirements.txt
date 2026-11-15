@@ -1,0 +1,5 @@
+# Purpose: lists independent-reference and test dependencies. Connects: reference scripts to data analysis and strategy comparison.
+pandas
+vectorbt
+pytest
+

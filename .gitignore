@@ -1,0 +1,21 @@
+# Purpose: keeps generated and secret files out of version control.
+# Connects: local setup, Python environments, Node packages, Rust builds, and secrets.
+node_modules/
+**/node_modules/
+**/.venv/
+venv/
+target/
+dist/
+coverage/
+.pytest_cache/
+.python-tmp/
+.mypy_cache/
+.ruff_cache/
+.env
+.env.*
+!.env.example
+*.py[cod]
+__pycache__/
+.DS_Store
+Thumbs.db
+

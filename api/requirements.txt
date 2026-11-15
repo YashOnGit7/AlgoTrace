@@ -1,0 +1,5 @@
+# Purpose: lists the API runtime and test dependencies. Connects: FastAPI endpoints to request validation and tests.
+fastapi
+pydantic
+pytest
+

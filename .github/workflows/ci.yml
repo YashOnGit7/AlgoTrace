@@ -1,0 +1,48 @@
+# Purpose: runs the scaffold's Rust, TypeScript, and Python checks on pushes and pull requests.
+# Connects: each module's documented test commands to one automated workflow.
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  rust:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - run: cargo test --manifest-path engine/Cargo.toml
+      - run: cargo fmt --manifest-path engine/Cargo.toml -- --check
+      - run: cargo clippy --manifest-path engine/Cargo.toml --all-targets --all-features -- -D warnings
+  typescript:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.25.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm test
+      - run: pnpm typecheck
+      - run: pnpm --filter @algotrace/web build
+  python:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: python -m venv api/.venv
+      - run: api/.venv/bin/python -m pip install -r api/requirements.txt
+      - run: api/.venv/bin/python -m pytest api/tests
+      - run: python -m venv reference/.venv
+      - run: reference/.venv/bin/python -m pip install -r reference/requirements.txt
+      - run: reference/.venv/bin/python -m pytest reference/tests
+

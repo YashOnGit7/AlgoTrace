@@ -1,0 +1,8 @@
+# Purpose: hand-calculated close values and expected SMA(3), EMA(3), and RSI(2) outputs.
+close,sma_3,ema_3,rsi_2
+1,NaN,NaN,NaN
+2,NaN,NaN,NaN
+3,2,2,100
+2,2.3333333333333335,2,50
+4,3,3,83.33333333333333
+3,3,3,50

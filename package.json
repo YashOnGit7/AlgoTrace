@@ -1,0 +1,11 @@
+{
+  "name": "algotrace",
+  "private": true,
+  "version": "0.1.0",
+  "packageManager": "pnpm@10.0.0",
+  "scripts": {
+    "test": "pnpm -r test",
+    "typecheck": "pnpm --filter @algotrace/compiler typecheck && pnpm --filter @algotrace/web typecheck"
+  }
+}
+

@@ -1,0 +1,26 @@
+{
+  "as_of": "2026-11-14",
+  "source_url": "https://www.zerodha.com/charges",
+  "zerodha_equity_delivery": {
+    "brokerage_pct": 0,
+    "brokerage_flat": 0,
+    "stt_buy_pct": 0.1,
+    "stt_sell_pct": 0.1,
+    "txn_pct": 0.00307,
+    "sebi_pct": 0.0001,
+    "stamp_buy_pct": 0.015,
+    "gst_pct": 18,
+    "dp_sell_flat": 15.34
+  },
+  "zero_costs": {
+    "brokerage_pct": 0,
+    "brokerage_flat": 0,
+    "stt_buy_pct": 0,
+    "stt_sell_pct": 0,
+    "txn_pct": 0,
+    "sebi_pct": 0,
+    "stamp_buy_pct": 0,
+    "gst_pct": 0,
+    "dp_sell_flat": 0
+  }
+}

@@ -1,0 +1,8 @@
+# Purpose: declares the JavaScript workspace packages.
+# Connects: the compiler and browser application through pnpm.
+packages:
+  - compiler
+  - web
+allowBuilds:
+  es5-ext: false
+  esbuild: true

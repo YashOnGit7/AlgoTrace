@@ -1,6 +1,56 @@
 <!-- Purpose: keeps a newest-first verified work log for future sessions. Connects: completed changes and open work to projects.md. -->
 # Session notes
 
+## 2026-11-15 — Prompt 1 pure-Rust engine
+
+### What was done
+- Implemented the native Rust engine modules for shared types, borrowed AGT1 data, indicators, AST evaluation, charges, simulation, metrics, and parameter sweeps.
+- Added hand-calculated fixtures, no-look-ahead and end-of-data checks, cost and stop tests, and proptest portfolio invariants.
+- Added the user's confirmed cost units, stop/target fill behavior, Sortino target, drawdown duration, and OHLC validity rules to `/spec`.
+- Added the non-negative-cash shortfall rule; a run errors before a sell that would produce negative cash.
+- Restored `spec/data-format.md` from the supplied specification after finding its text incorrectly appended to `spec/metrics.md` as a literal patch marker.
+- Updated the engine README, glossary, phase 1 explanation, project status, and this log.
+
+### Files touched
+- `engine/Cargo.toml`, `engine/Cargo.lock`, `engine/README.md`, `engine/src/lib.rs`, `engine/src/types.rs`, `engine/src/data.rs`, `engine/src/indicators.rs`, `engine/src/evaluator.rs`, `engine/src/costs.rs`, `engine/src/simulator.rs`, `engine/src/metrics.rs`, `engine/src/sweep.rs`.
+- `engine/tests/README.md`, `engine/tests/common/mod.rs`, `engine/tests/costs.rs`, `engine/tests/data_evaluator.rs`, `engine/tests/engine_example.rs`, `engine/tests/evaluator_ops.rs`, `engine/tests/final_bar.rs`, `engine/tests/indicators.rs`, `engine/tests/metrics.rs`, `engine/tests/properties.rs`, `engine/tests/stops.rs`, `engine/tests/sweep.rs`.
+- `engine/tests/fixtures/README.md`, `engine/tests/fixtures/indicator_values.csv`, `engine/tests/fixtures/crossover_20.csv`.
+- `spec/costs.md`, `spec/trading-rules.md`, `spec/metrics.md`, `spec/data-format.md`.
+- `decisions/017-engine-semantics.md`, `decisions/018-sweep-workspace.md`, `decisions/019-reject-negative-cash.md`.
+- `docs/glossary.md`, `docs/phase-1-explained.md`, `projects.md`, `notes.md`.
+
+### Decisions made
+- [017](decisions/017-engine-semantics.md): percentage-point cost units; exact stop/target fills without extra slippage; zero-target Sortino; peak-to-recovery drawdown duration; invalid OHLC rejection; exposure counts any part of a bar.
+- [018](decisions/018-sweep-workspace.md): prepare the graph once and reuse evaluation, trade, and equity buffers; return one metric summary per sweep value.
+- [019](decisions/019-reject-negative-cash.md): reject a run before any sell that would make cash negative.
+- [016](decisions/016-spec-gap-resolutions.md) remains marked DRAFT as previously requested.
+
+### Problems hit and fixes
+- `cargo` was installed under `C:\Users\BIT\.cargo\bin` but was not on the active shell PATH. Calling its full path enabled the requested checks; no toolchain installation was needed.
+- The first dependency fetch could not resolve crates.io in the restricted network. The approved retry downloaded only dependencies already listed in `engine/Cargo.toml`.
+- The first compile found slice/vector output type mismatches and unused warnings. Output helpers now borrow reusable vectors, shared test helpers allow dead code only in their test module, and Clippy's copy/loop warnings were fixed.
+- A metrics test expected exact zero despite ordinary floating-point residue; its assertion now uses the specified `1e-6` tolerance.
+- The original specification text for the binary layout was missing as a separate file. It was restored from the supplied prompt, and the stray marker was removed from `metrics.md`.
+
+### Things learned or gotchas
+- `PriceView` borrows the original byte slice and reads one little-endian number at a time, avoiding six copied arrays and alignment assumptions.
+- Sweep iterations reuse per-node series plus simulator equity/trade vector capacity. Metrics are accumulated without building a new daily-return vector.
+- A fixed sell DP fee can exceed tiny sale proceeds after a severe price fall; `/spec/trading-rules.md` now requires rejecting the run in that case to keep cash non-negative.
+- The native crate is `rlib` only in this phase. `wasm-bindgen` remains target-specific for the later WASM phase; no WASM exports or build were added.
+- Remaining compiler-side spec questions: duplicate-node merge identity and top-level/config AST JSON key ordering.
+
+### Commands that worked
+- `C:\Users\BIT\.cargo\bin\cargo.exe fmt --manifest-path engine\Cargo.toml -- --check` — exit 0, no output.
+- `C:\Users\BIT\.cargo\bin\cargo.exe test --offline --manifest-path engine\Cargo.toml` — exit 0; 28 integration tests passed, zero failed; unit and doc-test targets had zero tests.
+- `C:\Users\BIT\.cargo\bin\cargo.exe clippy --offline --manifest-path engine\Cargo.toml --all-targets --all-features -- -D warnings` — exit 0; finished with no warnings.
+
+### Open questions for me
+- Duplicate-node merge identity and top-level/config AST JSON key order are still open for the compiler phase.
+- ESLint remains unconfigured because the fixed dependency list does not include it, while the brief requires an ESLint-clean state.
+
+### TODO for the next session
+- Define Prompt 2 compiler scope and resolve its remaining AST serialization/duplicate-node questions before compiler implementation.
+
 ## 2026-11-14 — Initial repository and specification setup
 
 ### What was done

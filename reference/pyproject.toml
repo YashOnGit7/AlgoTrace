@@ -1,0 +1,4 @@
+# Purpose: configures Python test discovery for independent checks. Connects: pytest to the reference test folder.
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
