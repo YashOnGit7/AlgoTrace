@@ -9,3 +9,6 @@ pub mod metrics;
 pub mod simulator;
 pub mod sweep;
 pub mod types;
+
+#[cfg(target_arch = "wasm32")]
+pub mod wasm_api;

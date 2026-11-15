@@ -18,7 +18,7 @@ pub struct SweepParameter {
 /// Stores one sweep input and the resulting summary metrics.
 ///
 /// Example: each point can provide `total_return` as one cell in a parameter heatmap.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, serde::Serialize)]
 pub struct SweepPoint {
     pub value: f64,
     pub metrics: Metrics,

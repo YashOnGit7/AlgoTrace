@@ -34,6 +34,11 @@
 - **Whole shares:** an integer number of shares; the engine does not buy fractions.
 - **Wilder smoothing:** a running average used by RSI that gradually incorporates each new price change.
 - **Sweep:** rerunning one strategy with several parameter values to compare their metrics.
-- **WebAssembly (WASM):** a compact program format that can run inside a browser; browser integration is planned for a later phase.
+- **WebAssembly (WASM):** a compact program format that can run inside a browser, using a linear memory area shared with JavaScript.
+- **Linear memory:** the byte-addressed memory area a WebAssembly module reads and writes.
+- **Typed-array view:** a JavaScript object that interprets part of an `ArrayBuffer` as numbers without copying those bytes.
+- **Zero-copy (price input):** AlgoTrace copies encoded prices into WASM memory once, then Rust reads that stored data in place; it does not mean the browser-to-WASM transfer is free of a copy.
+- **Columnar data:** a layout that stores each trade field in its own contiguous array, such as all entry prices in one array.
+- **WASM memory growth:** expanding WebAssembly linear memory can replace its JavaScript `ArrayBuffer`, making older typed-array views stale; create new views from the current buffer afterward.
 - **Volume:** the number of shares traded during a bar.
 

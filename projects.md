@@ -37,12 +37,16 @@ reference\.venv\Scripts\python -m pytest reference\tests
 cargo test --manifest-path engine\Cargo.toml
 cargo fmt --manifest-path engine\Cargo.toml -- --check
 cargo clippy --manifest-path engine\Cargo.toml --all-targets --all-features -- -D warnings
+cargo build --manifest-path engine\Cargo.toml --target wasm32-unknown-unknown
+pnpm --filter @algotrace/web test
+pnpm --filter @algotrace/web typecheck
+pnpm --filter @algotrace/web build
 ```
 
 ## Phase checklist (as of 2026-11-15)
 - Prompt 0: done (2026-11-14)
 - Prompt 1: done (2026-11-15)
-- Prompt 2: not started
+- Prompt 2: in progress (2026-11-15; Part A WASM API and wrapper done)
 - Prompt 3: not started
 - Prompt 4: not started
 - Prompt 5: not started
@@ -53,16 +57,18 @@ cargo clippy --manifest-path engine\Cargo.toml --all-targets --all-features -- -
 - Prompt 10: not started
 
 ## Current state
-The pure-Rust engine now parses and validates AGT1 data through borrowed views, evaluates strategy AST nodes, calculates indicators and charges, simulates trades, calculates metrics, and runs reusable-buffer sweeps. Its 35 integration tests, formatting check, and warning-denied Clippy check pass. WebAssembly/browser integration is intentionally not part of Prompt 1. The compiler and main web features are still scaffolds, and frozen market data is not present.
+The Rust engine now parses and validates AGT1 data, evaluates strategies, simulates trades, computes metrics, and runs sweeps. Its wasm-bindgen API builds for `wasm32-unknown-unknown`; the TypeScript wrapper has 3 passing tests and strict type checking. The wrapper copies prices into WASM once, then Rust reads them in place. Full worker/UI integration, generated JS bindings, the compiler, and frozen market data are still pending.
 
 ## Next step
-Implement the compiler against the now accepted AST rules, including dependency ordering and duplicate-node merging.
+Generate and load the wasm-bindgen JavaScript package, then connect the wrapper to a Web Worker.
 
 ## Known issues and limitations
 - Python dependencies were installed and checked on Windows Python 3.13.6; the project brief also supports Python 3.11+.
 - Rust is installed under `C:\Users\BIT\.cargo\bin`, but the current PowerShell PATH does not include that folder; use the full executable path or refresh PATH.
-- No frozen NSE price files are present; the native Rust engine is implemented, while WASM/browser integration remains pending.
+- No frozen NSE price files are present; the Rust WASM API and wrapper are built, while generated JS bindings, worker hookup, and full browser integration remain pending.
 - `decision 016` is ACCEPTED and contains G1–G14. Decisions 017–019 capture Prompt 1 clarifications.
+- `wasm-pack` is not installed in the current environment; only the direct `wasm32-unknown-unknown` Rust build and wrapper interface were verified.
+- WASM library Clippy passes; wasm32 `--all-targets` also tries to compile proptest's non-wasm `wait-timeout` test dependency and is not a supported check here.
 - The latest engine/spec audit found no remaining differences in the implemented engine behavior. G8 duplicate-node merging, Kahn node ordering, and canonical pretty JSON generation are compiler output responsibilities; the compiler is still a scaffold.
 - Strict JSON files cannot contain comment headers; valid JSON files retain valid JSON syntax.
 - No ESLint dependency or configuration is present; the fixed dependency list does not include ESLint although the brief requires ESLint-clean code.

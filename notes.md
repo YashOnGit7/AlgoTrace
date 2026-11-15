@@ -1,6 +1,49 @@
 <!-- Purpose: keeps a newest-first verified work log for future sessions. Connects: completed changes and open work to projects.md. -->
 # Session notes
 
+## 2026-11-15 — Prompt 2 Part A WASM API
+
+### What was done
+- Added `engine/src/wasm_api.rs` with price reserve/free, AST backtest execution, equity pointer/length, columnar trade pointer/length, metrics JSON, result release, and JSON sweep exports.
+- Changed the Rust library output to support both native `rlib` and WebAssembly `cdylib`; exported the module only for `wasm32`.
+- Added `web/src/engine/wasmClient.ts`, tests, and a data-flow README. Price bytes are copied into WASM one time and then read in place; result views are recreated from the latest memory buffer after potentially growing calls.
+- Added a 21-column trade ABI with documented numeric exit reason codes and NaN sentinels for absent exit data.
+- Updated engine/web docs, glossary, viva questions, phase 2 explanation, decision 020, and current project state.
+
+### Files touched
+- `engine/Cargo.toml`, `engine/src/lib.rs`, `engine/src/wasm_api.rs`, `engine/src/sweep.rs`.
+- `web/src/engine/wasmClient.ts`, `web/src/engine/wasmClient.test.ts`, `web/src/engine/README.md`, `web/README.md`.
+- `decisions/020-wasm-memory-api.md`, `docs/glossary.md`, `docs/viva-questions.md`, `docs/phase-2-explained.md`, `engine/README.md`, `projects.md`, `notes.md`.
+
+### Decisions made
+- [020](decisions/020-wasm-memory-api.md): reserve one input byte allocation; return numeric output as pointer/length columns; return smaller metric/sweep summaries as JSON; rebuild JavaScript views after memory-growing calls.
+
+### Problems hit and fixes
+- The initial Rust format check caught one formatting difference; `cargo fmt` applied the canonical format before the final checks.
+- `wasm-pack` is not installed. The `wasm32-unknown-unknown` target is installed, so direct Cargo check and build succeeded; generated JS bindings and browser execution remain unverified.
+- Cross-target Clippy with `--all-targets` attempts to compile proptest's `wait-timeout` dev dependency, which is not supported for wasm32 in this setup. Native all-target Clippy and wasm32 library-only Clippy both pass.
+
+### Things learned or gotchas
+- WASM linear-memory growth can replace the JavaScript buffer. Never keep typed-array views across a call that can allocate/grow; ask the wrapper for fresh views after a run.
+- “Zero-copy” here means Rust reads the price bytes in place after one browser-to-WASM copy. The initial transfer is still a copy.
+- Trade result arrays are stored column by column in this order: entry bar, exit bar, shares, entry price, exit price, exit reason code, seven entry charge columns, seven exit charge columns, and net profit.
+
+### Commands that worked
+- `C:\Users\BIT\.cargo\bin\cargo.exe fmt --manifest-path engine\Cargo.toml -- --check` — exit 0, no output.
+- `C:\Users\BIT\.cargo\bin\cargo.exe check --offline --manifest-path engine\Cargo.toml --target wasm32-unknown-unknown` — exit 0.
+- `C:\Users\BIT\.cargo\bin\cargo.exe build --offline --manifest-path engine\Cargo.toml --target wasm32-unknown-unknown` — exit 0.
+- `C:\Users\BIT\.cargo\bin\cargo.exe clippy --offline --manifest-path engine\Cargo.toml --all-targets --all-features -- -D warnings` — exit 0.
+- `C:\Users\BIT\.cargo\bin\cargo.exe clippy --offline --manifest-path engine\Cargo.toml --target wasm32-unknown-unknown --lib -- -D warnings` — exit 0.
+- `C:\Users\BIT\.cargo\bin\cargo.exe test --offline --manifest-path engine\Cargo.toml` — exit 0; all 35 integration tests passed.
+- `pnpm --filter @algotrace/web test` — exit 0; 3 wrapper tests passed.
+- `pnpm --filter @algotrace/web typecheck` and `pnpm --filter @algotrace/web build` — exit 0.
+
+### Open questions for me
+- None for the pointer/data layout. The generated JS glue path will depend on the wasm-pack or wasm-bindgen packaging step.
+
+### TODO for the next session
+- Generate the wasm-bindgen JS package and connect `WasmEngineClient` to the browser worker.
+
 ## 2026-11-15 — Prompt 1 pure-Rust engine
 
 ### Follow-up audit and accepted rules G8–G14
