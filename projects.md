@@ -15,6 +15,7 @@ FastAPI serves price files and proxies AI; it does not run the backtest.
 - API: Python 3.11+, FastAPI, pydantic, pytest, Uvicorn 0.54.0 (local server only).
 - Frozen data: one-time yfinance download; references use pandas and vectorbt.
 - AI: Groq Llama 3 family model via FastAPI; `GROQ_API_KEY` and `GROQ_MODEL` are names only.
+- Package manager: pnpm 11.25.0, selected only by the root `package.json`; GitHub Actions reads that field.
 
 ## Folder map
 `spec/` behavior; `decisions/` records; `docs/` learning docs; `engine/` Rust; `compiler/` TypeScript compiler; `web/` React app; `api/` FastAPI; `data/` frozen files; `reference/` Python yardsticks; `bench/` measurements; `eval/` AI evaluation.
@@ -77,6 +78,7 @@ Connect the frontend to `/api/symbols` and `/api/prices/{symbol}`, then continue
 - The latest engine/spec audit found no remaining differences in the implemented engine behavior. G8 duplicate-node merging, Kahn node ordering, and canonical pretty JSON generation are compiler output responsibilities; the compiler is still a scaffold.
 - Strict JSON files cannot contain comment headers; valid JSON files retain valid JSON syntax.
 - No ESLint dependency or configuration is present; the fixed dependency list does not include ESLint although the brief requires ESLint-clean code.
+- CI's TypeScript job now builds and runs the real WASM integration test after installing Rust's wasm target and wasm-pack 0.15.1; see [decision 027](decisions/027-pnpm-version-and-wasm-ci.md).
 
 ## Environment variable names needed
 - `GROQ_API_KEY`

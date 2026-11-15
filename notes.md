@@ -1,6 +1,32 @@
 <!-- Purpose: keeps a newest-first verified work log for future sessions. Connects: completed changes and open work to projects.md. -->
 # Session notes
 
+## 2026-11-15 — Resolve pnpm version conflict and add real-WASM CI coverage
+
+### What was done
+- Changed root `package.json` to `pnpm@11.25.0`, the pnpm version used for this lockfile, and removed explicit version inputs from all pnpm/action-setup steps.
+- Expanded the TypeScript CI job to install Rust with the `wasm32-unknown-unknown` target, install wasm-pack 0.15.1, and run `pnpm test:wasm`.
+- Replaced the Windows-only WASM build command with a small cross-platform Node launcher; no engine or application source was changed.
+- Added [decision 027](decisions/027-pnpm-version-and-wasm-ci.md) and documented the chosen version source and CI coverage in `projects.md`.
+
+### Files touched
+- `package.json`, `.github/workflows/ci.yml`, `scripts/build-wasm.mjs`, `decisions/027-pnpm-version-and-wasm-ci.md`, `projects.md`, `notes.md`.
+
+### Commands that worked
+- CI workflow review — one pnpm version source, with Rust/WASM setup and `pnpm test:wasm` in the TypeScript job.
+- `pnpm --version` — `11.25.0`; root metadata reports `pnpm@11.25.0`.
+- `pnpm test` — exit 0; 3 wrapper tests passed and the compiler had no test files.
+- `pnpm typecheck` — exit 0 for compiler and web.
+- `pnpm --filter @algotrace/web build` — exit 0; Vite built the production bundle.
+- `pnpm test:wasm` — exit 0; wasm-pack built the browser package and Vitest passed the real-WASM integration test (1 file, 1 test).
+- `git diff --check` — exit 0.
+
+### Open questions for me
+- None.
+
+### TODO for the next session
+- Commit the listed CI and package-manager changes, push, then confirm the Rust, TypeScript and Python checks are green in the GitHub Actions run for that commit.
+
 ## 2026-11-15 — Apply relative-tolerance junk holiday cleanup
 
 ### What was done
