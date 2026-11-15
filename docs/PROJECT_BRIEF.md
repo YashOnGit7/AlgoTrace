@@ -15,7 +15,7 @@ FIXED TECH STACK (do not substitute; ask before adding anything)
 Frontend: React 18, TypeScript (strict mode, no any), Vite, @xyflow/react, TradingView Lightweight Charts, Plotly.js (heatmaps only), Zustand, Vitest, Playwright (2 flows only).
 Compiler: plain TypeScript, no parser libraries.
 Engine: Rust 2021 edition, wasm-bindgen, wasm-pack, serde, serde_json, proptest.
-Backend: Python 3.11+, FastAPI, pydantic, pytest. Data download: yfinance (one-time script only). Reference checks: pandas, vectorbt.
+Backend: Python 3.11+, FastAPI, pydantic, pytest, Uvicorn (local server only). Data download: yfinance (one-time script only). Reference checks: pandas, vectorbt.
 AI: Groq API with a Llama 3 family model, name read from an environment variable.
 
 REPOSITORY LAYOUT

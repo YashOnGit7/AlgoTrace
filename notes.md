@@ -1,6 +1,139 @@
 <!-- Purpose: keeps a newest-first verified work log for future sessions. Connects: completed changes and open work to projects.md. -->
 # Session notes
 
+## 2026-11-15 — Apply relative-tolerance junk holiday cleanup
+
+### What was done
+- Scanned every date in all 15 stock files with the rule that high-low and open-close differences are each at most `1e-9` times the larger absolute price in that pair, and all stock bars present that date have zero volume.
+- The only additional qualifying date in the frozen files was 2014-10-15. No other date qualified. Removed it from all 15 stock files; each went from 4,161 to 4,160 bars. The `^NSEI` index file remains at 4,142 bars.
+- Added the all-stock cleanup to the downloader before it writes AGT1 files. If any symbol download fails, it writes no files because a partial set cannot satisfy the shared-date check. Added a fake AGT1 file test with a tiny OHLC difference and an idempotence assertion.
+- Added [decision 026](decisions/026-zero-volume-flat-bar-cleanup.md) and updated `/data/README.md`, the phase 4 explanation and `projects.md` with the 1e-9 rule, 45 total removed stock rows over the three matching dates, current counts and the adjusted-price limitation.
+- Recorded that auto-adjusted prices incorporate splits, bonus issues and dividends; historical prices may not match actual transaction prices, and whole shares and rupee charges use adjusted values. This belongs in the final known-limitations document.
+
+### Files touched
+- `api/app/price_data.py`, `api/scripts/download_nse.py`, `api/tests/test_price_data.py`, `data/*.agt1`.
+- `data/README.md`, `decisions/026-zero-volume-flat-bar-cleanup.md`, `decisions/025-align-index-stock-series.md`, `docs/phase-4-explained.md`, `projects.md`, `notes.md`.
+
+### Commands that worked
+- Full frozen-file scan before removal — identified only 2014-10-15; no other qualifying dates.
+- `api\.venv\Scripts\python.exe -m pytest api\tests -q` — exit 0; 14 passed in 0.53s.
+
+### Open questions for me
+- None for this cleanup. Keep the adjusted-price issue in the final known-limitations list.
+
+### TODO for the next session
+- Include adjusted OHLC and whole-share/charge interpretation in the final known-limitations document.
+
+## 2026-11-15 — Review index-only date gaps and clean confirmed holiday bars
+
+### What was done
+- Compared the 21 dates present in each stock file but missing from `^NSEI`; checked weekdays, OHLCV for RELIANCE, TCS and SBIN, and the special-session evidence.
+- Removed two unambiguous category-(b) dates, 2014-04-24 and 2026-01-15, from all 15 stock files (30 stock rows total). Every stock changed from 4,163 to 4,161 bars. The index file was not changed and remains at 4,142 bars.
+- Kept the two verified non-flat, nonzero-volume weekend Muhurat sessions (2019-10-27 and 2020-11-14). Kept 2014-10-15 because TCS's zero-volume OHLC values disagree with RELIANCE and SBIN by one ULP; this remains unresolved and is not classified or removed.
+- Updated `/data/README.md` with cleanup counts, exact symbol format (`^NSEI`; uppercase `.NS` stock tickers), and index/stock alignment guidance. Updated `/api/README.md` with the same API symbol spelling and filename mapping.
+- Added [decision 025](decisions/025-align-index-stock-series.md): index/stock comparisons join on timestamp and forward-fill the last index close when missing; never compare by bar position. The engine's same-stock buy-and-hold benchmark is unaffected.
+- Updated the phase 4 explanation and current project state with the new bar and weekday-gap counts.
+
+### Files touched
+- `data/*.agt1` (two dates removed from each stock file); `data/README.md`; `api/README.md`.
+- `decisions/025-align-index-stock-series.md`; `docs/phase-4-explained.md`; `projects.md`; `notes.md`.
+
+### Classification outcome
+- (a) Retained: 2019-10-27 and 2020-11-14, verified NSE Muhurat sessions with nonzero volume and non-flat bars.
+- (b) Removed: 2014-04-24 and 2026-01-15, all three audited stocks have zero volume and identical OHLC.
+- (c) Ordinary active weekday bars: 2011-05-31, 2011-07-14, 2011-11-24, 2012-08-28, 2014-02-17, 2015-04-15, 2016-08-12, and 2018-01-01.
+- Unclear pending a definition/evidence for “low” versus “full” volume: 2011-12-26, 2012-01-02, 2012-05-21, 2013-01-01, 2014-01-01, 2014-10-15, 2015-01-01, 2016-01-01, and 2019-01-01. These remain in the data. On 2014-10-15, TCS close is `1021.39453125` and open/high/low are `1021.3945312499999`; RELIANCE and SBIN have exactly flat OHLC.
+- The remaining weekday candidates are not filled with synthetic rows. Post-clean weekday-gap reports: 259 for `^NSEI` and 242 per stock.
+
+### Commands that worked
+- `api\.venv\Scripts\python.exe -m pytest api\tests -q` — exit 0; 13 passed in 0.67s.
+- Binary audit — all 16 files decode, timestamps remain unique and increasing, and both removed dates are absent from all 15 stock files.
+
+### Open questions for me
+- Should the nine listed ambiguous dates be assigned category (a) or (c)? Daily OHLCV alone does not distinguish a short session from lower-than-usual volume on an ordinary session; 2014-10-15 also has the one-ULP cross-stock mismatch.
+
+### TODO for the next session
+- If needed, resolve ambiguous dates against a defined volume threshold or authoritative historical exchange session records.
+
+## 2026-11-15 — Pin and verify the local API server
+
+### What was done
+- Followed the user's approval to add Uvicorn and pinned `uvicorn==0.54.0` in `api/requirements.txt`.
+- Updated the Backend tech-stack entry in `docs/PROJECT_BRIEF.md` and `projects.md`; described Uvicorn as local-only.
+- Added decision [024](decisions/024-uvicorn-local-server.md), explaining why FastAPI needs a server process and that Uvicorn is only for local use.
+- Installed Uvicorn 0.54.0, started FastAPI at `127.0.0.1:8000`, and opened `http://127.0.0.1:8000/api/symbols` in the browser. It returned all 16 frozen symbols with HTTP 200.
+- Marked Prompt 4 done after the browser smoke check; the prior section's pending approval was resolved by this user confirmation.
+
+### Files touched
+- `api/requirements.txt`, `api/README.md`, `decisions/024-uvicorn-local-server.md`.
+- `docs/PROJECT_BRIEF.md`, `docs/phase-4-explained.md`, `projects.md`, `notes.md`.
+
+### Decisions made
+- [024](decisions/024-uvicorn-local-server.md): pin Uvicorn 0.54.0 as the local-only ASGI server used to run FastAPI.
+
+### Problems hit and how they were fixed
+- The API server could not bind from the restricted shell. Starting the explicitly approved local server with the required permission allowed the browser smoke check to complete.
+
+### Things learned or gotchas
+- FastAPI defines request handling; Uvicorn provides the local HTTP listener. `X-Bar-Count` remains exposed through the API's CORS configuration.
+
+### Commands that worked
+- `api\.venv\Scripts\python.exe -m pip install -r api\requirements.txt` — installed Uvicorn 0.54.0.
+- `api\.venv\Scripts\python.exe -m uvicorn app.main:app --app-dir api --host 127.0.0.1 --port 8000` — started the local server; browser request to `/api/symbols` returned HTTP 200 and 16 symbols.
+- `api\.venv\Scripts\python.exe -m pytest api\tests -q` — `13 passed in 0.61s` after adding Uvicorn.
+- `api\.venv\Scripts\python.exe -m uvicorn --version` — `Running uvicorn 0.54.0 with CPython 3.13.6 on Windows`.
+- `git diff --check` — exit 0.
+
+### Open questions for me
+- None.
+
+### TODO for the next session
+- Connect the web frontend to the verified symbol and price endpoints.
+
+## 2026-11-15 — Prompt 4 frozen NSE data and binary API
+
+### What was done
+- Read `docs/PROJECT_BRIEF.md`, all `/spec` files, `projects.md`, `notes.md`, and the existing data/API decisions before making implementation changes.
+- Added `api/scripts/download_nse.py`, a one-time yfinance downloader for `^NSEI` and the 15 requested `.NS` stocks. It uses `auto_adjust=True`, checks invalid OHLCV rows and duplicate dates, reports absent weekdays, and writes little-endian AGT1 binary files.
+- Downloaded 16 files on 2026-11-15. Each covers 2010-01-04 through 2026-11-13; the index has 4,142 bars and each stock has 4,163 bars. Every file decoded successfully. Quality checks found zero invalid rows and zero duplicate dates; weekday gap candidates were 259 for the index and 240 per stock.
+- Added FastAPI routes for `/health`, `/api/symbols`, and `/api/prices/{symbol}?from=&to=`. Price data is read from disk per request; responses include `application/octet-stream` and an exposed `X-Bar-Count` header. CORS is limited to `localhost:5173` and `127.0.0.1:5173`.
+- Added round-trip, data-quality, and endpoint/config tests. All 13 API tests pass.
+- Recorded data provenance and limitations in `/data/README.md`, added decisions [022](decisions/022-frozen-data-format-and-quality.md) and [023](decisions/023-local-binary-data-api.md), and wrote `/docs/phase-4-explained.md`. Updated the API README, glossary, viva questions, and project state.
+
+### Files touched
+- `api/app/main.py`, `api/app/price_data.py`, `api/scripts/download_nse.py`, `api/requirements.txt`, `api/pyproject.toml`, `api/README.md`.
+- `api/tests/test_price_data.py`, `api/tests/test_data_api.py`.
+- `data/*.agt1`, `data/README.md`, `decisions/022-frozen-data-format-and-quality.md`, `decisions/023-local-binary-data-api.md`.
+- `docs/phase-4-explained.md`, `docs/glossary.md`, `docs/viva-questions.md`, `projects.md`, `notes.md`.
+
+### Decisions made
+- [022](decisions/022-frozen-data-format-and-quality.md): adjust OHLC consistently; freeze one UTC-midnight timestamped AGT1 file per ticker; report candidate weekday gaps without inventing rows; drop invalid rows and resolve duplicate dates by keeping the last valid bar.
+- [023](decisions/023-local-binary-data-api.md): use FastAPI for health, symbol discovery, and binary price delivery; date bounds are inclusive; CORS allows only the local Vite origins; no cache/database layer.
+
+### Problems hit and how they were fixed
+- The restricted shell initially could not reach the Python package index. The explicitly requested yfinance package and its dependencies installed after network permission was granted.
+- An initial handmade ASGI request helper hung, so endpoint tests were simplified to call the FastAPI route functions and separately verify registered paths, query aliases, and CORS configuration. This avoids adding an unrequested HTTP test dependency.
+- Weekday gaps cannot be separated into exchange holidays and source omissions without an NSE holiday calendar. The downloader reports them as candidates and does not fabricate prices.
+- Uvicorn is not installed in the existing environment. Approval to add it to `api/requirements.txt` is pending because the project brief requires approval before adding dependencies outside the fixed list. The browser server command is documented but cannot run until that answer is received.
+
+### Things learned or gotchas
+- `auto_adjust=True` adjusts the OHLC columns consistently; dates are normalized to 00:00 UTC so API date filters include the expected market day.
+- The data has survivorship bias because the requested equities are today's large companies rather than a point-in-time historical universe.
+- `X-Bar-Count` must be listed in CORS `expose_headers` for frontend JavaScript to read it.
+
+### Commands that worked
+- `api\.venv\Scripts\python.exe -m pip install -r api\requirements.txt` — installed yfinance 1.8.0, pandas 3.1.1, and dependencies.
+- `api\.venv\Scripts\python.exe api\scripts\download_nse.py` — downloaded all 16 symbols; zero invalid rows, zero duplicate dates.
+- `api\.venv\Scripts\python.exe -m pytest api\tests -q` — `13 passed in 0.65s`.
+- `api\.venv\Scripts\python.exe -m py_compile api\app\main.py api\app\price_data.py api\scripts\download_nse.py` — exit 0.
+- `git diff --check` — exit 0.
+
+### Open questions for me
+- May Uvicorn, the ASGI server required to run FastAPI locally, be added to `api/requirements.txt`? This is the only remaining setup step for opening `/api/symbols` in a browser.
+
+### TODO for the next session
+- If approved, add Uvicorn, install requirements, launch the documented local API, verify `/api/symbols`, rerun pytest, and mark Prompt 4 done.
+
 ## 2026-11-15 — Prompt 2 Part A generated WASM, test page, and integration test
 
 ### What was done

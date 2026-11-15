@@ -1,4 +1,5 @@
 # Purpose: configures Python test discovery for the API. Connects: pytest to the API test folder.
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+pythonpath = ["."]
 

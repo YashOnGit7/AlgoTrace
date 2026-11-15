@@ -2,4 +2,6 @@
 fastapi
 pydantic
 pytest
+yfinance
+uvicorn==0.54.0
 

@@ -41,4 +41,8 @@
 - **Columnar data:** a layout that stores each trade field in its own contiguous array, such as all entry prices in one array.
 - **WASM memory growth:** expanding WebAssembly linear memory can replace its JavaScript `ArrayBuffer`, making older typed-array views stale; create new views from the current buffer afterward.
 - **Volume:** the number of shares traded during a bar.
+- **Adjusted OHLC:** open, high, low, and close prices adjusted together for corporate actions such as splits and dividends.
+- **Frozen data:** a saved snapshot of market prices that does not change between local runs unless it is downloaded again.
+- **CORS:** a browser rule that controls which website origins may read responses from an API.
+- **Survivorship bias:** a historical-data problem caused by testing only companies that still exist or are large today, while excluding companies that disappeared or left an index.
 

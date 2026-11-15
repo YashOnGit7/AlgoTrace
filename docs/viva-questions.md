@@ -10,3 +10,9 @@ WebAssembly can grow its linear memory. Growth can replace the JavaScript buffer
 
 ## Why are trades returned as columns?
 Each field is stored contiguously, so the web chart or table can read only the fields it needs. It also gives every trade field a simple pointer and length contract.
+
+## Why is yfinance used only once for the frozen data?
+yfinance is an unofficial source, and repeated downloads could change the inputs to a demonstration. Saving one snapshot makes runs repeatable and lets us record its date and tool versions.
+
+## What is the main limitation of the stock list?
+It contains today's large companies, not the full set of companies that existed in each historical year. That creates survivorship bias and can make historical results look better than a point-in-time universe would.
