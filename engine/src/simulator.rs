@@ -1,7 +1,7 @@
 //! Purpose: applies daily signals, whole-share fills, costs, stops, targets, and equity marking.
 //! Connects: evaluator signals and price bars to trades and results consumed by metrics.
 
-use crate::costs::{calculate_charges, FillSide};
+use crate::costs::{calculate_charges_with_rates, prepare_cost_preset, CostRates, FillSide};
 use crate::evaluator::{EvaluationPlan, EvaluationWorkspace, StrategyParameters};
 use crate::metrics::calculate_metrics;
 use crate::types::{
@@ -94,6 +94,11 @@ pub fn simulate_into(
     workspace.result.equity_curve.reserve(prices.len());
 
     let mut cash = config.initial_capital;
+    let cost_rates = prepare_cost_preset(&config.cost_preset)?;
+    let slippage_fraction = config.slippage_pct / 100.0;
+    let position_size_fraction = parameters.position_size_pct / 100.0;
+    let stop_loss_fraction = parameters.stop_loss_pct.map(|percent| percent / 100.0);
+    let take_profit_fraction = parameters.take_profit_pct.map(|percent| percent / 100.0);
     let mut total_charges = 0.0;
     let mut position: Option<Position> = None;
     for bar in 0..prices.len() {
@@ -104,7 +109,8 @@ pub fn simulate_into(
                     prices,
                     bar,
                     &mut SimulationLedger {
-                        config,
+                        cost_rates: &cost_rates,
+                        slippage_fraction,
                         cash: &mut cash,
                         total_charges: &mut total_charges,
                         position: &mut position,
@@ -117,8 +123,11 @@ pub fn simulate_into(
                 position = open_at_open(
                     prices,
                     bar,
-                    config,
-                    parameters,
+                    &cost_rates,
+                    slippage_fraction,
+                    position_size_fraction,
+                    stop_loss_fraction,
+                    take_profit_fraction,
                     &mut cash,
                     &mut total_charges,
                     &mut workspace.result.trades,
@@ -131,13 +140,16 @@ pub fn simulate_into(
             let low = prices.value(PriceField::Low, bar)?;
             let high = prices.value(PriceField::High, bar)?;
             let open = prices.value(PriceField::Open, bar)?;
-            if let Some((fill_price, reason)) = protective_exit(open, low, high, open_position) {
+            if let Some((fill_price, reason)) =
+                protective_exit(open, low, high, open_position, slippage_fraction)
+            {
                 close_at_price(
                     bar,
                     fill_price,
                     reason,
                     &mut SimulationLedger {
-                        config,
+                        cost_rates: &cost_rates,
+                        slippage_fraction,
                         cash: &mut cash,
                         total_charges: &mut total_charges,
                         position: &mut position,
@@ -167,13 +179,14 @@ pub fn simulate_into(
     if config.force_close_at_end && position.is_some() {
         let last_bar = prices.len() - 1;
         let close = prices.value(PriceField::Close, last_bar)?;
-        let fill_price = close * (1.0 - config.slippage_pct / 100.0);
+        let fill_price = close * (1.0 - slippage_fraction);
         close_at_price(
             last_bar,
             fill_price,
             ExitReason::EndOfData,
             &mut SimulationLedger {
-                config,
+                cost_rates: &cost_rates,
+                slippage_fraction,
                 cash: &mut cash,
                 total_charges: &mut total_charges,
                 position: &mut position,
@@ -212,7 +225,8 @@ struct Position {
 
 /// Bundles mutable portfolio state so sell helpers cannot accidentally use stale cash.
 struct SimulationLedger<'a> {
-    config: &'a StrategyConfig,
+    cost_rates: &'a CostRates,
+    slippage_fraction: f64,
     cash: &'a mut f64,
     total_charges: &'a mut f64,
     position: &'a mut Option<Position>,
@@ -222,33 +236,33 @@ struct SimulationLedger<'a> {
 /// Fills a pending buy at the next bar's open with slippage and whole-share sizing.
 ///
 /// Example: a buy signal at bar zero is filled at bar one's open, never at bar zero's close.
+#[allow(clippy::too_many_arguments)] // The arguments keep per-run converted assumptions explicit.
 fn open_at_open(
     prices: PriceView<'_>,
     bar: usize,
-    config: &StrategyConfig,
-    parameters: StrategyParameters,
+    cost_rates: &CostRates,
+    slippage_fraction: f64,
+    position_size_fraction: f64,
+    stop_loss_fraction: Option<f64>,
+    take_profit_fraction: Option<f64>,
     cash: &mut f64,
     total_charges: &mut f64,
     trades: &mut Vec<Trade>,
 ) -> EngineResult<Option<Position>> {
     let raw_open = prices.value(PriceField::Open, bar)?;
-    let fill_price = raw_open * (1.0 + config.slippage_pct / 100.0);
-    let budget = parameters.position_size_pct / 100.0 * *cash;
-    let shares = largest_affordable_shares(fill_price, budget, &config.cost_preset)?;
+    let fill_price = raw_open * (1.0 + slippage_fraction);
+    let budget = position_size_fraction * *cash;
+    let shares = largest_affordable_shares(fill_price, budget, cost_rates)?;
     if shares == 0 {
         return Ok(None);
     }
     let entry_notional = shares as f64 * fill_price;
-    let entry_charges = calculate_charges(&config.cost_preset, FillSide::Buy, entry_notional)?;
+    let entry_charges = calculate_charges_with_rates(cost_rates, FillSide::Buy, entry_notional);
     let spent = entry_notional + entry_charges.total();
     *cash = (*cash - spent).max(0.0);
     *total_charges += entry_charges.total();
-    let stop_price = parameters
-        .stop_loss_pct
-        .map(|percent| fill_price * (1.0 - percent / 100.0));
-    let target_price = parameters
-        .take_profit_pct
-        .map(|percent| fill_price * (1.0 + percent / 100.0));
+    let stop_price = stop_loss_fraction.map(|fraction| fill_price * (1.0 - fraction));
+    let target_price = take_profit_fraction.map(|fraction| fill_price * (1.0 + fraction));
     trades.push(Trade {
         entry_bar: bar,
         exit_bar: None,
@@ -275,7 +289,7 @@ fn open_at_open(
 fn largest_affordable_shares(
     fill_price: f64,
     budget: f64,
-    preset: &crate::types::CostPreset,
+    preset: &CostRates,
 ) -> EngineResult<u64> {
     if !fill_price.is_finite() || fill_price <= 0.0 || !budget.is_finite() || budget <= 0.0 {
         return Ok(0);
@@ -287,7 +301,7 @@ fn largest_affordable_shares(
         let distance = high - low;
         let candidate = low + distance / 2 + distance % 2;
         let turnover = candidate as f64 * fill_price;
-        let charges = calculate_charges(preset, FillSide::Buy, turnover)?.total();
+        let charges = calculate_charges_with_rates(preset, FillSide::Buy, turnover).total();
         if turnover + charges <= budget {
             low = candidate;
         } else {
@@ -307,7 +321,7 @@ fn close_at_open(
     reason: ExitReason,
 ) -> EngineResult<()> {
     let raw_open = prices.value(PriceField::Open, bar)?;
-    let fill_price = raw_open * (1.0 - ledger.config.slippage_pct / 100.0);
+    let fill_price = raw_open * (1.0 - ledger.slippage_fraction);
     close_at_price(bar, fill_price, reason, ledger)
 }
 
@@ -325,7 +339,7 @@ fn close_at_price(
         .as_ref()
         .ok_or_else(|| EngineError::new("cannot sell while no position is open"))?;
     let turnover = open_position.shares as f64 * fill_price;
-    let exit_charges = calculate_charges(&ledger.config.cost_preset, FillSide::Sell, turnover)?;
+    let exit_charges = calculate_charges_with_rates(ledger.cost_rates, FillSide::Sell, turnover);
     let cash_after_sell = *ledger.cash + turnover - exit_charges.total();
     if cash_after_sell < 0.0 {
         return Err(EngineError::new(
@@ -360,6 +374,7 @@ fn protective_exit(
     low: f64,
     high: f64,
     position: &Position,
+    slippage_fraction: f64,
 ) -> Option<(f64, ExitReason)> {
     let stop_hit = position.stop_price.is_some_and(|stop| low <= stop);
     let target_hit = position.target_price.is_some_and(|target| high >= target);
@@ -367,15 +382,16 @@ fn protective_exit(
         let stop = position
             .stop_price
             .expect("stop_hit proves a stop price exists");
-        Some((if open < stop { open } else { stop }, ExitReason::StopLoss))
+        let market_price = if open < stop { open } else { stop };
+        Some((
+            market_price * (1.0 - slippage_fraction),
+            ExitReason::StopLoss,
+        ))
     } else if target_hit {
         let target = position
             .target_price
             .expect("target_hit proves a target price exists");
-        Some((
-            if open > target { open } else { target },
-            ExitReason::TakeProfit,
-        ))
+        Some((open.max(target), ExitReason::TakeProfit))
     } else {
         None
     }

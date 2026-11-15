@@ -12,3 +12,5 @@
 
 When `stop_loss_pct` or `take_profit_pct` is omitted, that feature is off. An out-of-range value is compiler error `AT-E007`.
 
+All node parameters ending in `_pct` use percentage points (`0.1` means `0.1%`).
+

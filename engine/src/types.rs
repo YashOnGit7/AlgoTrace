@@ -72,14 +72,14 @@ pub struct AstNode {
 /// Example: `StrategyConfig { initial_capital: 100_000.0, ..Default::default() }` starts with one lakh rupees.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct StrategyConfig {
-    pub initial_capital: f64,
-    pub slippage_pct: f64,
     #[serde(default)]
     pub cost_preset: CostPreset,
     #[serde(default)]
     pub force_close_at_end: bool,
+    pub initial_capital: f64,
     #[serde(default = "default_risk_free_rate")]
     pub risk_free_rate: f64,
+    pub slippage_pct: f64,
     #[serde(default = "default_trading_days")]
     pub trading_days_per_year: u32,
 }
@@ -106,25 +106,25 @@ impl Default for StrategyConfig {
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
 pub struct CostPreset {
     #[serde(default)]
-    pub brokerage_pct: f64,
-    #[serde(default)]
     pub brokerage_flat: f64,
     #[serde(default)]
     pub brokerage_max_per_order: Option<f64>,
+    #[serde(default)]
+    pub brokerage_pct: f64,
+    #[serde(default)]
+    pub dp_sell_flat: f64,
+    #[serde(default)]
+    pub gst_pct: f64,
+    #[serde(default)]
+    pub sebi_pct: f64,
+    #[serde(default)]
+    pub stamp_buy_pct: f64,
     #[serde(default)]
     pub stt_buy_pct: f64,
     #[serde(default)]
     pub stt_sell_pct: f64,
     #[serde(default)]
     pub txn_pct: f64,
-    #[serde(default)]
-    pub sebi_pct: f64,
-    #[serde(default)]
-    pub stamp_buy_pct: f64,
-    #[serde(default)]
-    pub gst_pct: f64,
-    #[serde(default)]
-    pub dp_sell_flat: f64,
 }
 
 /// Holds the complete version-1 AST accepted by the engine.

@@ -3,27 +3,36 @@
 
 ## 2026-11-15 — Prompt 1 pure-Rust engine
 
+### Follow-up audit and accepted rules G8–G14
+- Decision 016 remains ACCEPTED and now contains G1–G14. The matching rules are recorded in `spec/ast.md`, `spec/metrics.md`, `spec/trading-rules.md`, `spec/data-format.md`, `spec/costs.md`, and `spec/nodes.md`.
+- Corrected the metric specification to use `trading_days_per_year`, and added a 126-day, nonzero-risk-free-rate formula test.
+- Updated the engine for configured-risk-free Sortino, longest peak recovery duration, market-style stop slippage, limit-style target fills, timestamp/price/volume validation, one-time percentage conversion into per-run rates, supplied preset validation, and serde key order.
+- The repeat audit found no remaining behavior differences in implemented engine areas. G8 merge and Kahn ordering plus pretty canonical JSON are compiler output responsibilities; the compiler remains a scaffold.
+- Direct coverage: indicators (`indicators.rs`); binary parsing and no-look-ahead (`data_evaluator.rs`); evaluator operations (`evaluator_ops.rs`, `data_evaluator.rs`); trading (`engine_example.rs`, `final_bar.rs`, `stops.rs`, `properties.rs`); costs (`costs.rs`); metrics (`metrics.rs`); AST key ordering (`serialization.rs`); sweeps (`sweep.rs`).
+- Formatting, warning-denied Clippy, and test checks passed. The suite now has 35 integration tests.
+
 ### What was done
 - Implemented the native Rust engine modules for shared types, borrowed AGT1 data, indicators, AST evaluation, charges, simulation, metrics, and parameter sweeps.
 - Added hand-calculated fixtures, no-look-ahead and end-of-data checks, cost and stop tests, and proptest portfolio invariants.
-- Added the user's confirmed cost units, stop/target fill behavior, Sortino target, drawdown duration, and OHLC validity rules to `/spec`.
+- Added the accepted G1–G14 rules and clarified preset semantics across the matching `/spec` files.
 - Added the non-negative-cash shortfall rule; a run errors before a sell that would produce negative cash.
 - Restored `spec/data-format.md` from the supplied specification after finding its text incorrectly appended to `spec/metrics.md` as a literal patch marker.
 - Updated the engine README, glossary, phase 1 explanation, project status, and this log.
 
 ### Files touched
 - `engine/Cargo.toml`, `engine/Cargo.lock`, `engine/README.md`, `engine/src/lib.rs`, `engine/src/types.rs`, `engine/src/data.rs`, `engine/src/indicators.rs`, `engine/src/evaluator.rs`, `engine/src/costs.rs`, `engine/src/simulator.rs`, `engine/src/metrics.rs`, `engine/src/sweep.rs`.
-- `engine/tests/README.md`, `engine/tests/common/mod.rs`, `engine/tests/costs.rs`, `engine/tests/data_evaluator.rs`, `engine/tests/engine_example.rs`, `engine/tests/evaluator_ops.rs`, `engine/tests/final_bar.rs`, `engine/tests/indicators.rs`, `engine/tests/metrics.rs`, `engine/tests/properties.rs`, `engine/tests/stops.rs`, `engine/tests/sweep.rs`.
+- `engine/tests/README.md`, `engine/tests/common/mod.rs`, `engine/tests/costs.rs`, `engine/tests/data_evaluator.rs`, `engine/tests/engine_example.rs`, `engine/tests/evaluator_ops.rs`, `engine/tests/final_bar.rs`, `engine/tests/indicators.rs`, `engine/tests/metrics.rs`, `engine/tests/properties.rs`, `engine/tests/serialization.rs`, `engine/tests/stops.rs`, `engine/tests/sweep.rs`.
 - `engine/tests/fixtures/README.md`, `engine/tests/fixtures/indicator_values.csv`, `engine/tests/fixtures/crossover_20.csv`.
-- `spec/costs.md`, `spec/trading-rules.md`, `spec/metrics.md`, `spec/data-format.md`.
+- `spec/ast.md`, `spec/costs.md`, `spec/data-format.md`, `spec/metrics.md`, `spec/nodes.md`, `spec/trading-rules.md`.
+- `decisions/016-spec-gap-resolutions.md`, `engine/src/types.rs`.
 - `decisions/017-engine-semantics.md`, `decisions/018-sweep-workspace.md`, `decisions/019-reject-negative-cash.md`.
 - `docs/glossary.md`, `docs/phase-1-explained.md`, `projects.md`, `notes.md`.
 
 ### Decisions made
-- [017](decisions/017-engine-semantics.md): percentage-point cost units; exact stop/target fills without extra slippage; zero-target Sortino; peak-to-recovery drawdown duration; invalid OHLC rejection; exposure counts any part of a bar.
+- [017](decisions/017-engine-semantics.md): original Prompt 1 clarifications, now superseded where G10–G14 provide updated normative semantics.
 - [018](decisions/018-sweep-workspace.md): prepare the graph once and reuse evaluation, trade, and equity buffers; return one metric summary per sweep value.
 - [019](decisions/019-reject-negative-cash.md): reject a run before any sell that would make cash negative.
-- [016](decisions/016-spec-gap-resolutions.md) remains marked DRAFT as previously requested.
+- [016](decisions/016-spec-gap-resolutions.md) is ACCEPTED and contains G1–G14.
 
 ### Problems hit and fixes
 - `cargo` was installed under `C:\Users\BIT\.cargo\bin` but was not on the active shell PATH. Calling its full path enabled the requested checks; no toolchain installation was needed.
@@ -41,7 +50,7 @@
 
 ### Commands that worked
 - `C:\Users\BIT\.cargo\bin\cargo.exe fmt --manifest-path engine\Cargo.toml -- --check` — exit 0, no output.
-- `C:\Users\BIT\.cargo\bin\cargo.exe test --offline --manifest-path engine\Cargo.toml` — exit 0; 28 integration tests passed, zero failed; unit and doc-test targets had zero tests.
+- `C:\Users\BIT\.cargo\bin\cargo.exe test --offline --manifest-path engine\Cargo.toml` — exit 0; 35 integration tests passed, zero failed; unit and doc-test targets had zero tests.
 - `C:\Users\BIT\.cargo\bin\cargo.exe clippy --offline --manifest-path engine\Cargo.toml --all-targets --all-features -- -D warnings` — exit 0; finished with no warnings.
 
 ### Open questions for me
@@ -75,7 +84,7 @@
 
 ### Decisions made
 - See [001](decisions/001-rust-engine.md) through [015](decisions/015-local-demo.md).
-- [016](decisions/016-spec-gap-resolutions.md) records G1–G7 and is marked DRAFT.
+- [016](decisions/016-spec-gap-resolutions.md) records G1–G7 and is now ACCEPTED.
 - Gaps resolved and placed in matching specs: G1 parameter ranges; G2 deterministic AST; G3 undefined metrics; G4 end-of-data handling; G5 rounding and tolerances; G6 warm-up/invalid values; G7 final-bar signals.
 
 ### Problems hit and fixes

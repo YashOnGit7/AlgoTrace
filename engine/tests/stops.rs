@@ -44,24 +44,24 @@ fn run_protective_exit(
     workspace.result().trades[0].clone()
 }
 
-/// Checks a stop touched during the session fills at its exact stop price.
+/// Checks a stop touched during the session applies sell slippage to its stop price.
 ///
 /// Example: a low of 89 crosses the approximately Rs 90.045 stop.
 #[test]
-fn stop_loss_fills_at_the_stop_price_on_a_normal_hit() {
+fn stop_loss_applies_sell_slippage_to_a_normal_stop_fill() {
     let trade = run_protective_exit([3.0, 100.0, 105.0, 89.0, 95.0, 100.0], Some(10.0), None);
     assert_eq!(trade.exit_reason, Some(ExitReason::StopLoss));
-    assert!((trade.exit_price.unwrap() - trade.entry_price * 0.9).abs() <= 1.0e-6);
+    assert!((trade.exit_price.unwrap() - trade.entry_price * 0.9 * 0.9995).abs() <= 1.0e-6);
 }
 
-/// Checks a gap below the stop fills at that day's open without extra slippage.
+/// Checks a gap below the stop fills at that day's open with sell slippage.
 ///
-/// Example: with a stop near 90 and an open of 80, the exit price is exactly 80.
+/// Example: with a stop near 90 and an open of 80, sell slippage applies to the open.
 #[test]
 fn stop_loss_gap_down_fills_at_the_open() {
     let trade = run_protective_exit([3.0, 80.0, 85.0, 78.0, 82.0, 100.0], Some(10.0), None);
     assert_eq!(trade.exit_reason, Some(ExitReason::StopLoss));
-    assert_eq!(trade.exit_price, Some(80.0));
+    assert!((trade.exit_price.unwrap() - 80.0 * 0.9995).abs() <= 1.0e-6);
 }
 
 /// Checks a take-profit trigger fills at its target without additional slippage.
@@ -85,5 +85,13 @@ fn stop_loss_wins_when_stop_and_target_both_trigger_in_one_bar() {
         Some(10.0),
     );
     assert_eq!(trade.exit_reason, Some(ExitReason::StopLoss));
-    assert!((trade.exit_price.unwrap() - trade.entry_price * 0.9).abs() <= 1.0e-6);
+    assert!((trade.exit_price.unwrap() - trade.entry_price * 0.9 * 0.9995).abs() <= 1.0e-6);
+}
+
+/// Checks a favorable gap through a take-profit receives the open price without slippage.
+#[test]
+fn take_profit_gap_fills_at_the_open_without_slippage() {
+    let trade = run_protective_exit([3.0, 115.0, 118.0, 112.0, 116.0, 100.0], None, Some(10.0));
+    assert_eq!(trade.exit_reason, Some(ExitReason::TakeProfit));
+    assert_eq!(trade.exit_price, Some(115.0));
 }

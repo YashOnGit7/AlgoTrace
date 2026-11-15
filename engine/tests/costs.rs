@@ -31,3 +31,27 @@ fn dp_charge_applies_only_to_sells() {
     assert_eq!(buy.dp, 0.0);
     assert_eq!(sell.dp, 15.34);
 }
+
+/// Checks supplied cost presets reject non-finite and negative rates with a clear error.
+#[test]
+fn supplied_cost_preset_must_have_finite_non_negative_values() {
+    let mut negative = load_cost_preset("zero_costs").unwrap();
+    negative.brokerage_flat = -0.01;
+    let error = algotrace_engine::costs::calculate_charges(
+        &negative,
+        algotrace_engine::costs::FillSide::Buy,
+        100.0,
+    )
+    .unwrap_err();
+    assert!(error.to_string().contains("finite and non-negative"));
+
+    let mut not_finite = load_cost_preset("zero_costs").unwrap();
+    not_finite.stt_sell_pct = f64::INFINITY;
+    let error = algotrace_engine::costs::calculate_charges(
+        &not_finite,
+        algotrace_engine::costs::FillSide::Sell,
+        100.0,
+    )
+    .unwrap_err();
+    assert!(error.to_string().contains("finite and non-negative"));
+}

@@ -104,9 +104,43 @@ fn price_view_borrows_the_original_binary_without_copying_arrays() {
 ///
 /// Example: a close above the bar high is an invalid daily price row.
 #[test]
-fn price_reader_rejects_ohlc_values_outside_the_bar_range() {
-    let invalid = common::encode_rows(&[[1.0, 10.0, 11.0, 9.0, 12.0, 100.0]]);
+fn price_reader_rejects_high_below_low() {
+    let invalid = common::encode_rows(&[[1.0, 10.0, 9.0, 11.0, 10.0, 100.0]]);
     assert!(read_price_file(&invalid).is_err());
+}
+
+/// Checks invalid timestamps, NaNs, and volume values are rejected before evaluation.
+#[test]
+fn price_reader_rejects_nan_and_non_increasing_timestamps_but_allows_zero_volume() {
+    let valid_zero_volume = common::encode_rows(&[
+        [1.0, 10.0, 11.0, 9.0, 10.0, 0.0],
+        [2.0, 10.0, 11.0, 9.0, 10.0, 0.0],
+    ]);
+    assert!(read_price_file(&valid_zero_volume).is_ok());
+
+    let repeated_timestamps = common::encode_rows(&[
+        [1.0, 10.0, 11.0, 9.0, 10.0, 0.0],
+        [1.0, 10.0, 11.0, 9.0, 10.0, 0.0],
+    ]);
+    assert!(read_price_file(&repeated_timestamps).is_err());
+
+    let nan_timestamp = common::encode_rows(&[[f64::NAN, 10.0, 11.0, 9.0, 10.0, 0.0]]);
+    assert!(read_price_file(&nan_timestamp).is_err());
+
+    let nan_volume = common::encode_rows(&[[1.0, 10.0, 11.0, 9.0, 10.0, f64::NAN]]);
+    assert!(read_price_file(&nan_volume).is_err());
+
+    let non_positive_price = common::encode_rows(&[[1.0, 0.0, 11.0, 0.0, 10.0, 0.0]]);
+    assert!(read_price_file(&non_positive_price).is_err());
+
+    let nan_price = common::encode_rows(&[[1.0, f64::NAN, 11.0, 9.0, 10.0, 0.0]]);
+    assert!(read_price_file(&nan_price).is_err());
+
+    let infinite_price = common::encode_rows(&[[1.0, 10.0, f64::INFINITY, 9.0, 10.0, 0.0]]);
+    assert!(read_price_file(&infinite_price).is_err());
+
+    let negative_volume = common::encode_rows(&[[1.0, 10.0, 11.0, 9.0, 10.0, -1.0]]);
+    assert!(read_price_file(&negative_volume).is_err());
 }
 
 /// Checks that DELAY writes false during its first bar and shifts values later.

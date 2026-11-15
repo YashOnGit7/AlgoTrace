@@ -39,7 +39,17 @@ pub fn read_price_file(bytes: &[u8]) -> EngineResult<PriceView<'_>> {
 ///
 /// Example: a bar with `high < close` returns an error before it can reach the backtest.
 fn validate_ohlc(view: PriceView<'_>) -> EngineResult<()> {
+    let mut previous_timestamp = None;
     for bar in 0..view.len() {
+        let timestamp = view.timestamp(bar)?;
+        if !timestamp.is_finite()
+            || previous_timestamp.is_some_and(|previous| timestamp <= previous)
+        {
+            return Err(EngineError::new(format!(
+                "timestamp at bar {bar} must be finite and strictly increasing"
+            )));
+        }
+        previous_timestamp = Some(timestamp);
         let open = view.value(PriceField::Open, bar)?;
         let high = view.value(PriceField::High, bar)?;
         let low = view.value(PriceField::Low, bar)?;
@@ -53,9 +63,15 @@ fn validate_ohlc(view: PriceView<'_>) -> EngineResult<()> {
                 "OHLC bar {bar} contains a non-finite or non-positive price"
             )));
         }
-        if low > open || open > high || low > close || close > high {
+        if high < low {
             return Err(EngineError::new(format!(
-                "OHLC bar {bar} violates low <= open/close <= high"
+                "OHLC bar {bar} has high below low"
+            )));
+        }
+        let volume = view.value(PriceField::Volume, bar)?;
+        if !volume.is_finite() || volume < 0.0 {
+            return Err(EngineError::new(format!(
+                "volume at bar {bar} must be finite and non-negative"
             )));
         }
     }

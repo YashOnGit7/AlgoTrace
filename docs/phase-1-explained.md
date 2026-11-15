@@ -14,5 +14,5 @@ The price view is like a library card catalog: it points to the original pages a
 The Rust engine reads the binary prices without making six duplicate arrays. It computes indicators and boolean signals in dependency order, then walks through the bars in time order. A signal at today's close can only trade at tomorrow's open. The simulator counts whole shares, applies per-fill fees and slippage, checks stops and targets, and records equity at every close. Tests compare a 20-bar crossover with hand-worked numbers and change future prices to prove earlier outputs stay fixed. A sweep reuses the same price view and working buffers.
 
 ## Verification
-`cargo test` passed all 28 integration tests, including proptest-generated cases. `cargo fmt --check` and Clippy with warnings denied both passed. Exact command output is recorded in the session notes.
+`cargo test` passed all 35 integration tests, including proptest-generated cases. `cargo fmt --check` and Clippy with warnings denied both passed. Exact command output is recorded in the session notes.
 

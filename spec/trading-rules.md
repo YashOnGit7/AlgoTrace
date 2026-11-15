@@ -9,7 +9,7 @@ Bars are daily; index `t` is a bar; signal series are computed with data up to t
 4. Slippage (default 0.05%): buys fill at open x (1 + slippage), sells at open x (1 - slippage).
 5. Position size: `budget = position_size_pct / 100 x cash`. Shares are the largest whole number `n` so that `n x fill price` plus all buy-side charges fits within the budget. If `n` is 0, skip the trade.
 6. Stop-loss: stop price = entry fill price x (1 - stop_loss_pct/100). From the entry bar onward, if low <= stop price, sell at the stop price, or at the open if the bar opened below the stop (gap). Take-profit is the mirror using high. If both could trigger in the same bar, the stop wins.
-   Stop-loss and take-profit fills use the specified stop/target price, or the gap open, without applying additional slippage.
+   Stop-loss is a market-style exit and applies sell slippage against the position: fill at `stop price x (1 - slippage)`, or on a gap at `open x (1 - slippage)`. Take-profit is a limit order and has no slippage: fill at `max(open, target price)`.
 7. If a position is closed by a stop or take-profit, no new entry on that same bar.
 8. End of data: mark any open position to market at the last close and flag it open, unless `force_close_at_end` is true. If true, sell at the last bar close with slippage applied (`close x (1 - slippage)`), charged as a normal sell, with exit reason `end_of_data`. If false, the position stays open: valued at the last close, no charges, shown as an open trade, and excluded from trade count, win rate, and profit factor.
 9. Equity is recorded at every bar close: cash plus shares x close.

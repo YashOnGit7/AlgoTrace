@@ -53,19 +53,19 @@ cargo clippy --manifest-path engine\Cargo.toml --all-targets --all-features -- -
 - Prompt 10: not started
 
 ## Current state
-The pure-Rust engine now parses AGT1 data through borrowed views, evaluates strategy AST nodes, calculates indicators and charges, simulates trades, calculates metrics, and runs reusable-buffer sweeps. Its 28 integration tests, formatting check, and warning-denied Clippy check pass. WebAssembly/browser integration is intentionally not part of Prompt 1. The compiler and main web features are still scaffolds, and frozen market data is not present.
+The pure-Rust engine now parses and validates AGT1 data through borrowed views, evaluates strategy AST nodes, calculates indicators and charges, simulates trades, calculates metrics, and runs reusable-buffer sweeps. Its 35 integration tests, formatting check, and warning-denied Clippy check pass. WebAssembly/browser integration is intentionally not part of Prompt 1. The compiler and main web features are still scaffolds, and frozen market data is not present.
 
 ## Next step
-Define the scope and resolve the remaining compiler-specific specification questions before Prompt 2.
+Implement the compiler against the now accepted AST rules, including dependency ordering and duplicate-node merging.
 
 ## Known issues and limitations
 - Python dependencies were installed and checked on Windows Python 3.13.6; the project brief also supports Python 3.11+.
 - Rust is installed under `C:\Users\BIT\.cargo\bin`, but the current PowerShell PATH does not include that folder; use the full executable path or refresh PATH.
-- No frozen NSE price files or backtest implementation exist.
-- `decision 016` is explicitly DRAFT; decisions 017–019 capture the Prompt 1 clarifications.
+- No frozen NSE price files are present; the native Rust engine is implemented, while WASM/browser integration remains pending.
+- `decision 016` is ACCEPTED and contains G1–G14. Decisions 017–019 capture Prompt 1 clarifications.
+- The latest engine/spec audit found no remaining differences in the implemented engine behavior. G8 duplicate-node merging, Kahn node ordering, and canonical pretty JSON generation are compiler output responsibilities; the compiler is still a scaffold.
 - Strict JSON files cannot contain comment headers; valid JSON files retain valid JSON syntax.
 - No ESLint dependency or configuration is present; the fixed dependency list does not include ESLint although the brief requires ESLint-clean code.
-- Compiler-specific details from `notes.md` remain open: duplicate-node merge criteria and top-level/config AST key ordering.
 
 ## Environment variable names needed
 - `GROQ_API_KEY`

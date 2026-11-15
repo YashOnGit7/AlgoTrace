@@ -1,14 +1,14 @@
 <!-- Purpose: defines portfolio metrics and undefined-value behavior. Connects: equity and trades to results shown by the UI. -->
 # Metrics
 
-`trading_days_per_year` defaults to 252 and `risk_free_rate` defaults to 6% a year; both are in config.
+`trading_days_per_year` defaults to 252 and `risk_free_rate` defaults to 6% a year; both are in config. Use the configured trading-day count in all annualization and daily risk-free calculations.
 
 - Total return.
-- CAGR = `(final/initial)^(252/bars) - 1`.
+- CAGR = `(final/initial)^(trading_days_per_year/bars) - 1`.
 - Daily returns from equity.
-- Sharpe = `mean(r - rf/252) / sample std(r - rf/252) x sqrt(252)`.
-- Sortino = `mean(r - target) / downside deviation x sqrt(trading_days_per_year)`, with the daily target fixed at 0%. Downside deviation is the square root of the mean squared negative return shortfall over all daily returns (non-negative shortfalls contribute zero).
-- Maximum drawdown and its length in bars. Drawdown length is measured from the peak bar to the first recovery bar; if the equity has not recovered by the final bar, it is measured through the final bar. The reported length belongs to the drawdown that produced the maximum drawdown.
+- Sharpe = `mean(r - rf/trading_days_per_year) / sample std(r - rf/trading_days_per_year) x sqrt(trading_days_per_year)`.
+- Sortino target is the daily risk-free rate, `risk_free_rate / trading_days_per_year`. Sortino = `mean(r - target) / downside deviation x sqrt(trading_days_per_year)`. Downside deviation is the square root of the mean of `min(0, r - target)^2` over all daily returns.
+- Maximum drawdown and its length in bars. Drawdown length is the longest run of bars from an equity peak until the first bar whose equity is at or above that peak. If it never recovers, count through the last bar.
 - Trade count.
 - Win rate and profit factor on net-of-charges profit.
 - Average net trade.

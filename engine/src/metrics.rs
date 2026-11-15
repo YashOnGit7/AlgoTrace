@@ -26,7 +26,11 @@ pub fn calculate_metrics(
         - 1.0;
     let daily_risk_free = config.risk_free_rate / config.trading_days_per_year as f64;
     let sharpe = sharpe_ratio(equity, daily_risk_free, config.trading_days_per_year)?;
-    let sortino = sortino_ratio(equity, config.trading_days_per_year)?;
+    let sortino = sortino_ratio(
+        equity,
+        config.risk_free_rate / config.trading_days_per_year as f64,
+        config.trading_days_per_year,
+    )?;
     let (max_drawdown, max_drawdown_length) = max_drawdown(equity);
     let trade_count = trades
         .iter()
@@ -81,7 +85,11 @@ fn sharpe_ratio(
 /// Calculates annualized Sortino using the zero-percent target and all return periods.
 ///
 /// Example: a return list with no negative values has zero downside deviation and returns `None`.
-fn sortino_ratio(equity: &[EquityPoint], trading_days: u32) -> EngineResult<Option<f64>> {
+fn sortino_ratio(
+    equity: &[EquityPoint],
+    daily_target: f64,
+    trading_days: u32,
+) -> EngineResult<Option<f64>> {
     let returns = equity.len().saturating_sub(1);
     if returns < 2 {
         return Ok(None);
@@ -90,9 +98,9 @@ fn sortino_ratio(equity: &[EquityPoint], trading_days: u32) -> EngineResult<Opti
     let mut downside_sum = 0.0;
     for pair in equity.windows(2) {
         validate_return_pair(pair[0].equity, pair[1].equity)?;
-        let daily_return = pair[1].equity / pair[0].equity - 1.0;
-        sum += daily_return;
-        downside_sum += daily_return.min(0.0).powi(2);
+        let excess_return = pair[1].equity / pair[0].equity - 1.0 - daily_target;
+        sum += excess_return;
+        downside_sum += excess_return.min(0.0).powi(2);
     }
     let mean = sum / returns as f64;
     let downside_mean_square = downside_sum / returns as f64;
@@ -113,7 +121,7 @@ fn validate_return_pair(previous: f64, current: f64) -> EngineResult<()> {
     Ok(())
 }
 
-/// Finds the deepest peak-to-recovery drawdown and its duration in bars.
+/// Finds the maximum drawdown and the longest peak-to-recovery run in bars.
 ///
 /// Example: equity that falls from 100 to 80 and recovers to 100 two bars later has a 20% drawdown lasting two bars.
 fn max_drawdown(equity: &[EquityPoint]) -> (f64, usize) {
@@ -122,32 +130,28 @@ fn max_drawdown(equity: &[EquityPoint]) -> (f64, usize) {
     };
     let mut peak = first.equity;
     let mut peak_index = first.bar;
-    let mut episode_peak_index = peak_index;
-    let mut deepest_in_episode = 0.0_f64;
-    let mut maximum = 0.0;
-    let mut maximum_length = 0;
+    let mut maximum = 0.0_f64;
+    let mut longest_length = 0;
+    let mut underwater_since = None;
 
     for point in equity.iter().skip(1) {
         if point.equity >= peak {
-            if deepest_in_episode > maximum {
-                maximum = deepest_in_episode;
-                maximum_length = point.bar.saturating_sub(episode_peak_index);
+            if underwater_since.is_some() {
+                longest_length = longest_length.max(point.bar.saturating_sub(peak_index));
             }
             peak = point.equity;
             peak_index = point.bar;
-            deepest_in_episode = 0.0;
+            underwater_since = None;
         } else if peak > 0.0 {
-            episode_peak_index = peak_index;
-            let drawdown = (peak - point.equity) / peak;
-            deepest_in_episode = deepest_in_episode.max(drawdown);
+            underwater_since.get_or_insert(peak_index);
+            maximum = maximum.max((peak - point.equity) / peak);
         }
     }
-    if deepest_in_episode > maximum {
-        maximum = deepest_in_episode;
-        let final_bar = equity.last().expect("first point exists").bar;
-        maximum_length = final_bar.saturating_sub(episode_peak_index);
+    let final_bar = equity.last().expect("first point exists").bar;
+    if underwater_since.is_some() {
+        longest_length = longest_length.max(final_bar.saturating_sub(peak_index));
     }
-    (maximum, maximum_length)
+    (maximum, longest_length)
 }
 
 /// Calculates closed-trade win rate, average net profit, and profit factor.

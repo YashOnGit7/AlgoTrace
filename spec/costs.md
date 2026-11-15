@@ -11,9 +11,11 @@ Preset `zerodha_equity_delivery`, as of `2026-11-14`, source: https://www.zerodh
 - GST: 18% on (brokerage + SEBI fee + transaction charge)
 - DP charge: Rs 15.34 flat per sell order (already includes GST; do not add GST again)
 
-Preset fields: `brokerage_pct`, `brokerage_flat`, optional `brokerage_max_per_order`, `stt_buy_pct`, `stt_sell_pct`, `txn_pct`, `sebi_pct`, `stamp_buy_pct`, `gst_pct`, `dp_sell_flat`. Other presets: `zero_costs`, `custom`.
+Preset fields: `brokerage_pct`, `brokerage_flat`, optional `brokerage_max_per_order`, `stt_buy_pct`, `stt_sell_pct`, `txn_pct`, `sebi_pct`, `stamp_buy_pct`, `gst_pct`, `dp_sell_flat`. The only bundled preset names are `zero_costs` and `zerodha_equity_delivery`. `custom` means a user-supplied preset object inside `config`, not a name.
 
-Values in fields ending in `_pct` are percentage points: `0.1` means 0.1%, so the engine divides these values by 100 when calculating a charge.
+Values in every field ending in `_pct` (config, node params, and cost presets) are percentage points: `0.1` means 0.1%. The engine converts them to fractions once when loading.
+
+Every rate and flat charge in a supplied preset must be finite and non-negative; otherwise reject it with a clear error.
 
 The engine does not round charges internally; each charge is computed per fill. Displayed charges are rounded to 2 decimals (paise). Engine calculations use `f64` throughout and do not round to tick size.
 
