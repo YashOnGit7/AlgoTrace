@@ -1,6 +1,50 @@
 <!-- Purpose: keeps a newest-first verified work log for future sessions. Connects: completed changes and open work to projects.md. -->
 # Session notes
 
+## 2026-11-15 — Prompt 2 Part A generated WASM, test page, and integration test
+
+### What was done
+- Confirmed the executable at `C:\Users\BIT\.cargo\bin\wasm-pack.exe`; `wasm-pack --version` returned `wasm-pack 0.15.1`.
+- Added `pnpm build:wasm` to build with `--target web` into `web/src/engine/pkg`; added `pnpm test:wasm` to build before running the real-module test. The build script uses the installed wasm-pack and matching local wasm-bindgen CLI, plus Cargo's bin folder on PATH.
+- Disabled optional `wasm-opt` in the wasm-pack release profile because it otherwise tries to download Binaryen. This makes the package build work with the local toolchain and no network fetch.
+- Added the generated output directory to `.gitignore` and recorded the location and source-control policy in decision [021](decisions/021-wasm-generated-package.md).
+- Added a plain HTML smoke page at `web/src/engine/wasm-test.html`, served at `http://127.0.0.1:5173/src/engine/wasm-test.html` when the web dev server runs on localhost port 5173. It uses the same native CSV fixture and displays final equity, closed trade count, and total charges.
+- Added a Node/Vitest integration test that imports the generated module and checks final equity Rs 1,250, one closed trade, and zero total charges. The existing 3 wrapper tests use fake exports and fake growing memory; they do not use the real WASM binary.
+- Updated the phase explanation, wrapper README, and project state.
+
+### Files touched
+- `.gitignore`, `package.json`, `web/package.json`.
+- `decisions/021-wasm-generated-package.md`, `web/src/engine/realWasm.integration.test.mjs`, `web/src/engine/wasm-test.html`, `web/src/engine/wasm-test.ts`, `web/src/engine/workedExample.ts`, `web/src/engine/README.md`.
+- `docs/phase-2-explained.md`, `projects.md`, `notes.md`.
+
+### Decisions made
+- [021](decisions/021-wasm-generated-package.md): generated web bindings go under `web/src/engine/pkg`, are ignored by Git, and are recreated by `pnpm build:wasm` before the dedicated real-WASM test.
+
+### Problems hit and fixes
+- The first `pnpm build:wasm` call could not find Cargo because `C:\Users\BIT\.cargo\bin` is not on PATH. The script now prepends that location before invoking the full wasm-pack executable path.
+- The first build could not find Cargo on PATH. A later wasm-pack attempt could not fetch its matching `wasm-bindgen` CLI from GitHub/crates.io; its Cargo fallback then succeeded after network access became available. The matching executable is now cached under the local wasm-pack directory, and the build script adds that cache to PATH.
+- The next build tried to download optional Binaryen `wasm-opt`; adding `wasm-opt = false` to the wasm-pack release profile removed that unnecessary download. `pnpm test:wasm` now builds the generated package and passes the real-module test.
+
+### Things learned or gotchas
+- The 3 regular wrapper tests are deliberately stand-ins; `pnpm test:wasm` is the separate test that loads the actual generated `.wasm` file.
+- The HTML page is served by Vite from the repository's web package; build the WASM package first so its generated JavaScript and binary exist under the ignored `pkg` folder.
+- The expected worked-example values come from `engine/tests/engine_example.rs`: final equity 1250, one trade, total charges zero with the empty zero-cost preset.
+
+### Commands that worked
+- `C:\Users\BIT\.cargo\bin\wasm-pack.exe --version` — `wasm-pack 0.15.1`.
+- `pnpm test` — exit 0; compiler has no tests yet; web has 3 passed mock-wrapper tests.
+- `pnpm test:wasm` — exit 0; wasm-pack built `web/src/engine/pkg`, and the real-WASM Node test passed (1 test).
+- `pnpm typecheck` — exit 0 for compiler and web; `pnpm --filter @algotrace/web build` — exit 0.
+- `cargo test --manifest-path engine\Cargo.toml` — exit 0; 35 integration tests passed, with zero failures.
+- `cargo fmt --manifest-path engine\Cargo.toml -- --check` and native all-target Clippy with warnings denied — exit 0.
+- `git diff --check` — exit 0.
+
+### Open questions for me
+- None about the API or expected demo values. This session's browser and shell denied loopback connections, so it could not visually verify the Vite page.
+
+### TODO for the next session
+- Open the Vite page locally and confirm it displays Rs 1,250.00, one closed trade, and Rs 0.00 charges; then connect the wrapper to a Web Worker.
+
 ## 2026-11-15 — Prompt 2 Part A WASM API
 
 ### What was done

@@ -5,7 +5,9 @@
   "packageManager": "pnpm@10.0.0",
   "scripts": {
     "test": "pnpm -r test",
-    "typecheck": "pnpm --filter @algotrace/compiler typecheck && pnpm --filter @algotrace/web typecheck"
+    "typecheck": "pnpm --filter @algotrace/compiler typecheck && pnpm --filter @algotrace/web typecheck",
+    "build:wasm": "set \"PATH=C:\\Users\\BIT\\AppData\\Local\\.wasm-pack\\wasm-bindgen-cargo-install-0.2.130;C:\\Users\\BIT\\.cargo\\bin;%PATH%\" && C:\\Users\\BIT\\.cargo\\bin\\wasm-pack.exe build engine --target web --out-dir ../web/src/engine/pkg --out-name algotrace_engine --release",
+    "test:wasm": "pnpm build:wasm && pnpm --filter @algotrace/web test:wasm"
   }
 }
 
