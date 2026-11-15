@@ -1,0 +1,86 @@
+{
+  "nodes": [
+    {
+      "id": "close",
+      "type": "PRICE",
+      "params": {
+        "field": "close"
+      }
+    },
+    {
+      "id": "rsi",
+      "type": "RSI",
+      "params": {
+        "period": 14
+      }
+    },
+    {
+      "id": "oversold",
+      "type": "CONSTANT",
+      "params": {
+        "value": 30
+      }
+    },
+    {
+      "id": "overbought",
+      "type": "CONSTANT",
+      "params": {
+        "value": 70
+      }
+    },
+    {
+      "id": "entry",
+      "type": "CROSSES_BELOW",
+      "params": {}
+    },
+    {
+      "id": "exit",
+      "type": "CROSSES_ABOVE",
+      "params": {}
+    },
+    {
+      "id": "strategy",
+      "type": "STRATEGY",
+      "params": {
+        "position_size_pct": 100
+      }
+    }
+  ],
+  "edges": [
+    {
+      "from": "close",
+      "to": "rsi",
+      "port": "input"
+    },
+    {
+      "from": "rsi",
+      "to": "entry",
+      "port": "a"
+    },
+    {
+      "from": "oversold",
+      "to": "entry",
+      "port": "b"
+    },
+    {
+      "from": "rsi",
+      "to": "exit",
+      "port": "a"
+    },
+    {
+      "from": "overbought",
+      "to": "exit",
+      "port": "b"
+    },
+    {
+      "from": "entry",
+      "to": "strategy",
+      "port": "entry"
+    },
+    {
+      "from": "exit",
+      "to": "strategy",
+      "port": "exit"
+    }
+  ]
+}

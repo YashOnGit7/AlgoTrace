@@ -1,0 +1,12 @@
+{
+  "nodes": [
+    {
+      "id": "price",
+      "type": "PRICE",
+      "params": {
+        "field": "close"
+      }
+    }
+  ],
+  "edges": []
+}

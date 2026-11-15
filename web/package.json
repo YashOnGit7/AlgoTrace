@@ -6,8 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
-    "test": "vitest run --passWithNoTests --exclude src/engine/realWasm.integration.test.mjs",
-    "test:wasm": "vitest run src/engine/realWasm.integration.test.mjs",
+    "test": "vitest run --passWithNoTests --exclude **/*.integration.test.mjs",
+    "test:wasm": "vitest run src/engine/realWasm.integration.test.mjs src/engine/compilerWasm.integration.test.mjs",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

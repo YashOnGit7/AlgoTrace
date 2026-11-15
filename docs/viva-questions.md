@@ -22,3 +22,9 @@ Both tools had a signal exit scheduled for the next open, and that bar's low lat
 
 ## What happened when you compared your engine to vectorbt, and what did you learn?
 Eight of the nine strategy and stock comparisons matched over the full history, including exact trade dates and share counts and prices/equity within `1e-6`. The remaining SBIN stop-strategy comparison matches through bar 2501. On bar 2502, a scheduled signal exit and an intrabar stop overlap: AlgoTrace exits at the open under G15, while vectorbt applies its built-in stop first. I tried disabling the stop with a per-bar stop array, but vectorbt still used it, so I documented a named exception instead of weakening the comparison or changing the engine. I learned that independent tools can implement different event priorities even with identical signals, and that those differences need explicit rules and transparent comparison boundaries.
+
+## How does the compiler turn an AI graph into an engine AST?
+It checks the graph shape, connects each input port, orders dependencies with Kahn's algorithm, then checks types and parameters. It removes unused nodes with a warning, merges identical calculations, runs the safe constant-fold pass, and emits the versioned AST with stable ordering. The final integration test sends that AST to the real Rust/WASM engine.
+
+## Why does the compiler stop after the first failing stage?
+Later checks can be confusing when an earlier structural rule is broken. The compiler reports every error in the earliest failing stage, sorts them by a fixed rule, then waits for the graph to be fixed before checking later stages.

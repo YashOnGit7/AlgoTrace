@@ -1,3 +1,49 @@
+## 2026-11-15 — Prompt 3 TypeScript compiler
+
+### What was done
+- Read the project brief and all nine specification files before implementing the approved compiler work.
+- Built the standalone `@algotrace/compiler` package with one public function, `compile(graph, config)`, and separate files for input validation, normalization, Kahn ordering/cycle detection, type checking, parameter validation, reachability, duplicate merging, constant folding, and AST lowering.
+- The compiler consumes only `/spec/ai-graph-format.md` nodes (`id`, `type`, `params`) and edges (`from`, `to`, `port`). Risk-free rate is emitted as annual decimal fraction `0.06`, matching `/spec/ast.md` and Rust `default_risk_free_rate()` in `engine/src/types.rs`.
+- Cost presets import `engine/config/cost_presets.json` directly. Only approved defaults are applied; all other required values are validated.
+- Added three reference strategy graphs and golden ASTs, invalid examples AT-E001–AT-E010, and an AT-W001 graph under `spec/examples/`.
+- Added compiler Vitest suites for errors, goldens, deterministic JSON, fast-check generated graphs vs an independent validity checker, duplicate merging, and config validation.
+- Added a real-WASM web integration test: compiles all three example graphs and checks trade counts on RELIANCE.NS and TCS.NS under vectorbt's zero-cost/zero-slippage settings. The existing CI TypeScript job already runs `pnpm test:wasm`.
+- Added decision records [029](decisions/029-compiler-input-contract.md) through [034](decisions/034-compiler-fuzz-and-folding.md), compiler pass/example READMEs, phase 3 explanation, glossary entries, and viva questions.
+
+### Files touched
+- `compiler/package.json`, `compiler/tsconfig.json`, `compiler/src/`, `compiler/tests/`, `compiler/README.md`, `compiler/src/passes/README.md`.
+- `spec/examples/`, `web/package.json`, `web/src/engine/compilerWasm.integration.test.mjs`.
+- `decisions/029-compiler-input-contract.md` through `decisions/034-compiler-fuzz-and-folding.md`.
+- `docs/phase-3-explained.md`, `docs/glossary.md`, `docs/viva-questions.md`, `projects.md`, `notes.md`.
+
+### Decisions made
+- [029](decisions/029-compiler-input-contract.md): AI graph format is the compiler boundary; no React Flow types.
+- [030](decisions/030-compiler-defaults-and-cost-source.md): apply only approved defaults, use risk-free annual decimal 0.06, import the engine cost JSON.
+- [031](decisions/031-compiler-diagnostic-precedence.md): stop at earliest failing stage and sort its diagnostics deterministically.
+- [032](decisions/032-compiler-example-corpus.md): checked-in strategy, error, warning, and golden fixtures.
+- [033](decisions/033-compiler-wasm-acceptance.md): run the examples through real WASM with the six specified reference trade counts.
+- [034](decisions/034-compiler-fuzz-and-folding.md): use fast-check; keep the v1 constant-fold pass a documented no-op under current operations.
+
+### Problems hit and fixes
+- pnpm initially could not reconcile this checkout's generated pnpm v10 module metadata with its pnpm v11 store, and the first install hit a Windows symlink permission error. After rebuilding generated metadata and using the accessible v11 store, the already-approved fast-check install succeeded and updated the lockfile.
+- The first AT-E005 fixture accidentally omitted an input, so AT-E006 correctly took precedence. Replaced it with a connected Series-to-BoolSeries mismatch; the error suite then passed.
+- Golden ASTs initially represented the optional brokerage cap as `null`; changed normalization to preserve the bundled file's omission of that optional field, matching the source preset exactly.
+
+### Things learned or gotchas
+- Rust stores `risk_free_rate` as `0.06`, a decimal fraction per year; this is not 6 percentage points.
+- In v1, math/comparison with two `Number` inputs is an error, and other operations require series. Thus a constant-fold stage exists but has no valid expressions to simplify.
+- The existing CI TypeScript job already builds WASM and runs `pnpm test:wasm`; adding the second integration file to that script makes CI execute it without workflow changes.
+
+### Commands that worked
+- `pnpm test` — exit 0; compiler 20 tests passed and web wrapper 3 tests passed.
+- `pnpm typecheck` — exit 0; compiler and web TypeScript checks passed.
+- `pnpm test:wasm` — exit 0; wasm-pack built the web package, real 20-bar WASM check passed, and 3 compiler-to-WASM cases passed (covering all 6 expected stock/strategy counts).
+
+### Open questions for me
+- None for this compiler phase.
+
+### TODO for the next session
+- Wait for the next requested phase. The canvas adapter remains separate from the compiler input contract.
 ## 2026-11-15 — G15 order precedence and vectorbt exception
 
 ### What changed

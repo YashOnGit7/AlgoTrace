@@ -1,0 +1,113 @@
+{
+  "nodes": [
+    {
+      "id": "close",
+      "type": "PRICE",
+      "params": {
+        "field": "close"
+      }
+    },
+    {
+      "id": "fast",
+      "type": "SMA",
+      "params": {
+        "period": 10
+      }
+    },
+    {
+      "id": "slow",
+      "type": "SMA",
+      "params": {
+        "period": 30
+      }
+    },
+    {
+      "id": "entry",
+      "type": "CROSSES_ABOVE",
+      "params": {}
+    },
+    {
+      "id": "exit",
+      "type": "CROSSES_BELOW",
+      "params": {}
+    },
+    {
+      "id": "strategy",
+      "type": "STRATEGY",
+      "params": {
+        "position_size_pct": 100
+      }
+    },
+    {
+      "id": "n1",
+      "type": "CONSTANT",
+      "params": {
+        "value": 1
+      }
+    },
+    {
+      "id": "n2",
+      "type": "CONSTANT",
+      "params": {
+        "value": 2
+      }
+    },
+    {
+      "id": "math",
+      "type": "ADD",
+      "params": {}
+    }
+  ],
+  "edges": [
+    {
+      "from": "close",
+      "to": "fast",
+      "port": "input"
+    },
+    {
+      "from": "close",
+      "to": "slow",
+      "port": "input"
+    },
+    {
+      "from": "fast",
+      "to": "entry",
+      "port": "a"
+    },
+    {
+      "from": "slow",
+      "to": "entry",
+      "port": "b"
+    },
+    {
+      "from": "fast",
+      "to": "exit",
+      "port": "a"
+    },
+    {
+      "from": "slow",
+      "to": "exit",
+      "port": "b"
+    },
+    {
+      "from": "entry",
+      "to": "strategy",
+      "port": "entry"
+    },
+    {
+      "from": "exit",
+      "to": "strategy",
+      "port": "exit"
+    },
+    {
+      "from": "n1",
+      "to": "math",
+      "port": "a"
+    },
+    {
+      "from": "n2",
+      "to": "math",
+      "port": "b"
+    }
+  ]
+}

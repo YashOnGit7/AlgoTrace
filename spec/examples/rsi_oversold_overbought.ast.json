@@ -1,0 +1,87 @@
+{
+  "version": 1,
+  "config": {
+    "cost_preset": {
+      "brokerage_flat": 0,
+      "brokerage_pct": 0,
+      "dp_sell_flat": 15.34,
+      "gst_pct": 18,
+      "sebi_pct": 0.0001,
+      "stamp_buy_pct": 0.015,
+      "stt_buy_pct": 0.1,
+      "stt_sell_pct": 0.1,
+      "txn_pct": 0.00307
+    },
+    "force_close_at_end": false,
+    "initial_capital": 100000,
+    "risk_free_rate": 0.06,
+    "slippage_pct": 0.05,
+    "trading_days_per_year": 252
+  },
+  "nodes": [
+    {
+      "id": "close",
+      "op": "PRICE",
+      "params": {
+        "field": "close"
+      },
+      "inputs": {}
+    },
+    {
+      "id": "overbought",
+      "op": "CONSTANT",
+      "params": {
+        "value": 70
+      },
+      "inputs": {}
+    },
+    {
+      "id": "oversold",
+      "op": "CONSTANT",
+      "params": {
+        "value": 30
+      },
+      "inputs": {}
+    },
+    {
+      "id": "rsi",
+      "op": "RSI",
+      "params": {
+        "period": 14
+      },
+      "inputs": {
+        "input": "close"
+      }
+    },
+    {
+      "id": "entry",
+      "op": "CROSSES_BELOW",
+      "params": {},
+      "inputs": {
+        "a": "rsi",
+        "b": "oversold"
+      }
+    },
+    {
+      "id": "exit",
+      "op": "CROSSES_ABOVE",
+      "params": {},
+      "inputs": {
+        "a": "rsi",
+        "b": "overbought"
+      }
+    },
+    {
+      "id": "strategy",
+      "op": "STRATEGY",
+      "params": {
+        "position_size_pct": 100
+      },
+      "inputs": {
+        "entry": "entry",
+        "exit": "exit"
+      }
+    }
+  ],
+  "sink": "strategy"
+}

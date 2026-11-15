@@ -1,0 +1,73 @@
+{
+  "nodes": [
+    {
+      "id": "close",
+      "type": "PRICE",
+      "params": {
+        "field": "close"
+      }
+    },
+    {
+      "id": "average",
+      "type": "SMA",
+      "params": {
+        "period": 20
+      }
+    },
+    {
+      "id": "entry",
+      "type": "GT",
+      "params": {}
+    },
+    {
+      "id": "exit",
+      "type": "LT",
+      "params": {}
+    },
+    {
+      "id": "strategy",
+      "type": "STRATEGY",
+      "params": {
+        "position_size_pct": 100,
+        "stop_loss_pct": 10
+      }
+    }
+  ],
+  "edges": [
+    {
+      "from": "close",
+      "to": "average",
+      "port": "input"
+    },
+    {
+      "from": "close",
+      "to": "entry",
+      "port": "a"
+    },
+    {
+      "from": "average",
+      "to": "entry",
+      "port": "b"
+    },
+    {
+      "from": "close",
+      "to": "exit",
+      "port": "a"
+    },
+    {
+      "from": "average",
+      "to": "exit",
+      "port": "b"
+    },
+    {
+      "from": "entry",
+      "to": "strategy",
+      "port": "entry"
+    },
+    {
+      "from": "exit",
+      "to": "strategy",
+      "port": "exit"
+    }
+  ]
+}

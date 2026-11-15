@@ -1,0 +1,59 @@
+{
+  "nodes": [
+    {
+      "id": "a",
+      "type": "SMA",
+      "params": {
+        "period": 2
+      }
+    },
+    {
+      "id": "b",
+      "type": "SMA",
+      "params": {
+        "period": 3
+      }
+    },
+    {
+      "id": "entry",
+      "type": "CONSTANT",
+      "params": {
+        "value": 1
+      }
+    },
+    {
+      "id": "exit",
+      "type": "CONSTANT",
+      "params": {
+        "value": 0
+      }
+    },
+    {
+      "id": "strategy",
+      "type": "STRATEGY",
+      "params": {}
+    }
+  ],
+  "edges": [
+    {
+      "from": "a",
+      "to": "b",
+      "port": "input"
+    },
+    {
+      "from": "b",
+      "to": "a",
+      "port": "input"
+    },
+    {
+      "from": "entry",
+      "to": "strategy",
+      "port": "entry"
+    },
+    {
+      "from": "exit",
+      "to": "strategy",
+      "port": "exit"
+    }
+  ]
+}

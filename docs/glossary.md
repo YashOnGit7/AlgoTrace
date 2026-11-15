@@ -46,6 +46,15 @@
 - **CORS:** a browser rule that controls which website origins may read responses from an API.
 - **Survivorship bias:** a historical-data problem caused by testing only companies that still exist or are large today, while excluding companies that disappeared or left an index.
 - **Vectorbt:** a Python portfolio backtesting library used here as an independent comparison for strategy trades and equity.
+- **Compiler pass:** one ordered check or transformation that a strategy graph goes through before it becomes engine input.
+- **Kahn's algorithm:** a way to order graph nodes by resolving nodes with no remaining prerequisites, while detecting cycles.
+- **Type checking:** verifying that each connected node output is allowed by the receiving input, such as a Number used with a Series.
+- **Reachability:** whether a graph node can affect the final strategy output; unreachable nodes are removed with a warning.
+- **Duplicate computation merge:** combining graph nodes whose operation, parameters, and resolved inputs are identical.
+- **Constant folding:** calculating a value during compilation instead of during a backtest; v1 has no valid constant-only operation to fold.
+- **Golden-file test:** comparing compiler output with a checked-in expected AST so accidental formatting or behavior changes are visible.
+- **Property-based fuzz test:** checking many generated graphs to find cases that hand-written examples may miss.
+- **Diagnostic:** an error or warning with a stable code, a beginner-friendly explanation, and a suggested next step.
 - **Long-only:** a strategy can own shares or hold cash, but cannot profit from borrowed shares falling in price.
 - **Relative tolerance:** a comparison limit scaled to the size of the values being compared; a `1e-6` tolerance allows a difference of one millionth of the larger magnitude.
 - **Signal exit:** a sell instruction created by a strategy condition; AlgoTrace schedules it for the next bar's open.
