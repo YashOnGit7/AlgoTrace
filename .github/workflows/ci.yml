@@ -27,7 +27,8 @@ jobs:
           node-version: 24
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm test
+      - run: pnpm --filter @algotrace/compiler test
+      - run: pnpm --filter @algotrace/web exec vitest run --passWithNoTests --exclude '**/*.integration.test.mjs' --exclude 'e2e/**'
       - run: pnpm typecheck
       - run: pnpm --filter @algotrace/web build
       - uses: dtolnay/rust-toolchain@stable
