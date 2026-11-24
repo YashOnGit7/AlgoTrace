@@ -66,3 +66,8 @@
 
 
 - **G15 scheduled-order precedence:** an entry or signal exit due at the open is processed before that bar's stop-loss or take-profit checks; a scheduled signal exit therefore wins over a same-bar stop.
+- **Strategy canvas:** a visual editor where node cards represent strategy operations and wires connect their inputs and outputs.
+- **Node port:** a named input or output socket on a graph node; each port accepts only specified value types.
+- **Dagre:** a graph layout library that places connected nodes in a readable left-to-right dependency order.
+- **Undo history:** saved earlier graph states that let a user reverse edits and redo them later.
+- **Compiler diagnostic:** the compiler's error or warning, including its code, friendly explanation, and node or input location.

@@ -1,3 +1,48 @@
+## 2026-11-22 — Prompt 6 browser drag synchronization
+
+### Trace finding and fix
+- Inspected the failed Playwright `error-context.md`, `trace.zip`, and captured browser frame. It showed the crossover with an extra SMA still unconnected; AT-E006 was visible on that SMA, but no AT-E005 refusal message appeared.
+- The trace showed Auto layout followed by only a 150 ms wait before pointer coordinates were measured. React Flow's `fitView` animation lasts 250 ms, so the target handle moved during the drag. This was a test timing problem; the app's refusal feedback remained intact.
+- Updated the browser test to poll node rectangles until they remain stable before each drag. The refused-wire assertion is unchanged in intent and now checks AT-E005 plus the beginner-friendly wrong-type message. No app code changed.
+- The old 31-second run was dominated by the 30-second expect timeout waiting for `connection-error`. The test timeout was not increased. The corrected canvas browser test passed in 6.4 seconds within the full run.
+
+### Final command results
+- `pnpm test`: compiler 23/23; web 6/6; 29 total passed.
+- `pnpm typecheck`: compiler and web TypeScript checks passed.
+- `pnpm test:wasm`: 4 real-WASM integration tests passed.
+- `pnpm --filter @algotrace/web test:e2e`: 2 browser tests passed (15.7 seconds total).
+
+## 2026-11-15 — Prompt 6 strategy canvas
+
+### What was done
+- Made the compiler-backed React Flow strategy builder the default page and retained the worker-backed Prompt 5 backtest demo in a separate tab.
+- Added grouped palette entries and parameter editors for every operation in `/spec/nodes.md`, with the specified port colors and live compiler diagnostics.
+- Added compiler-owned `canvas-rules` connection checks; the browser flow demonstrates that an incompatible BoolSeries-to-SMA wire is refused with AT-E005.
+- Added the three checked-in strategy templates, a deliberately broken example for every AT-E001–AT-E010 error code, and an AT-W001 warning example.
+- Added Zustand graph editing with undo/redo, selection delete/duplicate, JSON save/load, and dagre layout. The canvas graph and saved file remain in the AI graph format without React Flow positions.
+- Added decisions [039](decisions/039-dagre-canvas-layout.md) and [040](decisions/040-compiler-owned-canvas-type-rules.md), and [phase 6 explanation](docs/phase-6-explained.md). Updated glossary and viva questions.
+
+### Findings and fixes
+- The browser test confirmed that visual feedback must not set React state for every wire-drag pointer move; the type check remains immediate, while rejection text is displayed after a short delay.
+- Broken fixtures with dangling references need to retain their original edges in Zustand even though React Flow cannot render those edges. A separate `unrenderedEdges` collection preserves the input for compilation and diagnostics.
+- The palette-to-crossover flow was exercised with actual mouse connections in Chromium, followed by checks for all ten errors and the warning.
+
+### Commands and outcome
+- `pnpm test` — compiler, compiler canvas rules, wrapper, and Zustand tests passed.
+- `pnpm typecheck` — compiler and web checks passed.
+- `pnpm --filter @algotrace/web build` — Vite production build passed.
+- `pnpm --filter @algotrace/web test:e2e` — local Playwright covers the prior backtest browser flow plus the canvas workflow; see final run output.
+
+### Decisions made
+- [039](decisions/039-dagre-canvas-layout.md): use user-approved `@dagrejs/dagre`; use a spaced grid before the graph has any connections.
+- [040](decisions/040-compiler-owned-canvas-type-rules.md): expose and reuse the compiler's actual type validation for live connection compatibility.
+
+### Open questions
+- None for this phase.
+
+### TODO for the next session
+- Continue with Prompt 7 when requested.
+
 ## 2026-11-15 — Prompt 5 browser thin slice
 
 ### What was done

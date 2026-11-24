@@ -13,6 +13,7 @@ test("loads RELIANCE.NS from the API and plots the compiler strategy in real WAS
     if (response.url().includes("/api/prices/RELIANCE.NS")) priceResponseStatus = response.status();
   });
   await page.goto("/");
+  await page.getByRole("tab", { name: "WASM demo" }).click();
   await expect(page.getByTestId("run-status")).toHaveText("RELIANCE.NS backtest complete");
   expect(priceResponseStatus).toBe(200);
   await expect(page.getByTestId("api-bar-count")).toHaveText(String(reference.bars));

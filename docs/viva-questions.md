@@ -34,3 +34,12 @@ The worker keeps CPU work away from the screen thread, so the page can still res
 
 ## Why does the reference say 79 trades while the page says 78 closed trades?
 The reference's 79 records include one position that remains open at the final bar. `/spec/metrics.md` counts closed trades only, so the engine reports 78 closed trades. The page shows the 79 total records separately and explains that the open position is excluded from the closed count.
+
+## How does the strategy canvas prevent a type-invalid connection?
+While a wire is being drawn, React Flow asks the compiler's `connectionDiagnostic()` helper about that proposed edge. The helper invokes the same compiler input and type-check passes used by `compile()`, including Number broadcasting rules. If the types do not fit, React Flow refuses the edge and the page shows the compiler code and friendly message. This avoids copying the type rules into the web app.
+
+## How does a saved strategy graph differ from its canvas layout?
+The saved JSON contains only the spec graph: node IDs, node types, parameters, and source-to-port edges. Node screen positions, selection, and zoom are local canvas state. This keeps saved graphs portable and keeps the compiler independent of React Flow.
+
+## Why use dagre for automatic graph layout?
+Dagre positions nodes based on their dependencies so data usually flows from left to right. Before any wires exist, there is no dependency order, so the canvas uses a spaced grid to keep newly added cards apart.
