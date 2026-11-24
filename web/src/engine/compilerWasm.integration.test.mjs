@@ -4,7 +4,7 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { expect, it } from "vitest";
 
-import { compile } from "@algotrace/compiler";
+import { compile, compileSource } from "@algotrace/compiler";
 import { initSync } from "./pkg/algotrace_engine.js";
 import * as wasmModule from "./pkg/algotrace_engine.js";
 import { WasmEngineClient } from "./wasmClient.ts";
@@ -41,6 +41,14 @@ function compileExample(name) {
   return result.ast;
 }
 
+/** Compiles the paired source-language example with the production compiler entry point. @example `compileSourceExample("sma_crossover")` emits its Strategy AST. */
+function compileSourceExample(name) {
+  const source = readFileSync(fileURLToPath(new URL(`${name}.strategy`, exampleDirectory)), "utf8");
+  const result = compileSource(source, matchingVectorbtConfig);
+  if (!result.ok) throw new Error(`${name}.strategy did not compile: ${JSON.stringify(result.errors)}`);
+  return result.ast;
+}
+
 /** Runs the actual WASM artifact on a frozen AGT1 stock and returns the closed-plus-open trade list size. @example `tradeCount("RELIANCE", ast)` returns its engine trade count. */
 function tradeCount(symbol, ast) {
   const bytes = readFileSync(fileURLToPath(new URL(`${symbol}.agt1`, dataDirectory)));
@@ -56,4 +64,7 @@ it.each(strategies)("compiles and runs %s on RELIANCE.NS and TCS.NS in real WASM
   const ast = compileExample(name);
   expect(tradeCount("RELIANCE", ast)).toBe(relianceCount);
   expect(tradeCount("TCS", ast)).toBe(tcsCount);
+  const sourceAst = compileSourceExample(name);
+  expect(tradeCount("RELIANCE", sourceAst)).toBe(relianceCount);
+  expect(tradeCount("TCS", sourceAst)).toBe(tcsCount);
 });

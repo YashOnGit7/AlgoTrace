@@ -1,0 +1,2 @@
+buy when mystery(close, 2)
+sell when close < 1

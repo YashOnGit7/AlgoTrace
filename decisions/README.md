@@ -10,3 +10,5 @@ flowchart LR
   Spec --> Code[Implementation]
 ```
 
+
+Records 041–044 cover the handwritten strategy lexer/parser, the v1 language design, source maps, and lowering unary minus through existing graph nodes.

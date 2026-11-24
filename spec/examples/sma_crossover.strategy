@@ -1,0 +1,5 @@
+strategy "SMA crossover"
+fast = sma(close, 10)
+slow = sma(close, 30)
+buy when crosses_above(fast, slow)
+sell when crosses_below(fast, slow)

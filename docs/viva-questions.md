@@ -43,3 +43,13 @@ The saved JSON contains only the spec graph: node IDs, node types, parameters, a
 
 ## Why use dagre for automatic graph layout?
 Dagre positions nodes based on their dependencies so data usually flows from left to right. Before any wires exist, there is no dependency order, so the canvas uses a spaced grid to keep newly added cards apart.
+# Strategy language
+
+**Q: How does the handwritten strategy language frontend work?**  
+A: The lexer scans source characters into tokens with line and column positions. The parser checks statements and groups expressions using precedence. A lowering pass creates the existing AI graph and stores a source map, then the existing compiler checks the graph and creates the AST.
+
+**Q: How do you handle unary minus when there is no NEGATE graph node?**  
+A: I lower `-x` to `SUB(CONSTANT(0), x)`. This uses existing graph operations and keeps the engine unchanged.
+
+**Q: What happens when a compiler error comes from source code?**  
+A: Each generated node has a source span. `compileSource` maps a node-based compiler diagnostic back to the corresponding source line and column.

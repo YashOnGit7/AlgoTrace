@@ -1,0 +1,5 @@
+strategy "Price above SMA with stop-loss"
+average = sma(close, 20)
+buy when close > average
+sell when close < average
+stop_loss 10%

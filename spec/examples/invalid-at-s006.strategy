@@ -1,0 +1,2 @@
+buy when sma(close, 1) > 2
+sell when close < 1

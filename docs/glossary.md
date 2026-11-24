@@ -63,6 +63,12 @@
 - **Long-only:** a strategy can own shares or hold cash, but cannot profit from borrowed shares falling in price.
 - **Relative tolerance:** a comparison limit scaled to the size of the values being compared; a `1e-6` tolerance allows a difference of one millionth of the larger magnitude.
 - **Signal exit:** a sell instruction created by a strategy condition; AlgoTrace schedules it for the next bar's open.
+- **Lexer:** the first language-processing stage; it turns source characters into positioned tokens such as names, numbers, and symbols.
+- **Parser:** the stage that checks token order against the grammar and builds an expression/statement structure.
+- **Precedence climbing:** a parser technique that uses operator precedence levels to group expressions such as multiplication before addition.
+- **Source map:** a mapping from generated graph node ids back to the line and columns of source text that created them.
+- **End-exclusive span:** a source range whose end column points just after the final character.
+- **Graph lowering:** converting parsed source constructs into the compiler's existing graph nodes and edges.
 
 
 - **G15 scheduled-order precedence:** an entry or signal exit due at the open is processed before that bar's stop-loss or take-profit checks; a scheduled signal exit therefore wins over a same-bar stop.

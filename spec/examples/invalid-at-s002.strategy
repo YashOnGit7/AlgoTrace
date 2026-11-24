@@ -1,0 +1,3 @@
+strategy "unterminated title
+buy when close > 2
+sell when close < 1

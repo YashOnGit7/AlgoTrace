@@ -1,0 +1,4 @@
+strategy "RSI oversold / overbought"
+value = rsi(close, 14)
+buy when crosses_below(value, 30)
+sell when crosses_above(value, 70)

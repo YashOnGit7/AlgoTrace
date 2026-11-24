@@ -524,3 +524,10 @@
 ### TODO for the next session
 - Review the residual specification questions and draft decision 016, install Rust, then run `cargo test`, `cargo fmt -- --check`, and `cargo clippy --all-targets --all-features -- -D warnings`.
 
+
+## 2026-11-25 — Strategy language
+- Implemented the no-dependency lexer, precedence-climbing parser, and graph lowering under `compiler/src/language/`; the public API is `compileSource(source, config)`.
+- Added `/spec/strategy-language.md`, paired `.strategy` versions of the three reference programs, invalid fixtures AT-S001–AT-S006, frontend documentation, and decision records 041–044.
+- Approved details: assignments/rules/settings can be interleaved after an optional first-line title; assignments must precede use; comments can trail statements while `#` inside a title is preserved; CRLF/LF and missing final newline are equivalent; positions are 1-based with end-exclusive spans and tabs count as one column. Unterminated title text is AT-S002. Uppercase keyword/function hints direct the user to lowercase spelling.
+- Every generated node has a source span, and graph compiler errors map to source locations. Unary minus lowers to `SUB(CONSTANT(0), operand)`.
+- Verified `pnpm test` (45 tests), `pnpm typecheck`, and `pnpm test:wasm` (4 tests). The WASM integration compiles all three language examples and confirms reference trade counts on RELIANCE.NS and TCS.NS.

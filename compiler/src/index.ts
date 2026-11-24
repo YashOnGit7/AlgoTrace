@@ -9,9 +9,52 @@ import { pruneUnreachable } from "./passes/reachability.js";
 import { mergeDuplicates } from "./passes/merge-duplicates.js";
 import { foldConstants } from "./passes/constant-fold.js";
 import { lowerToAst } from "./passes/lower.js";
-import type { CompileResult, Diagnostic } from "./model.js";
+import type { CompileResult, Diagnostic, StrategyAst, StrategyGraph } from "./model.js";
+import { lex } from "./language/lexer.js";
+import { parse } from "./language/parser.js";
+import { toGraph } from "./language/to_graph.js";
+import type { SourceDiagnostic, SourceSpan } from "./language/model.js";
 
 export type { AstConfig, AstNode, CompileConfig, CompileFailure, CompileResult, CompileSuccess, Diagnostic, DiagnosticCode, GraphEdge, GraphNode, StrategyAst, StrategyGraph } from "./model.js";
+export type { SourceCode, SourceDiagnostic, SourceSpan } from "./language/model.js";
+
+export type SourceMappedDiagnostic = Diagnostic & { readonly line?: number; readonly column?: number; readonly endColumn?: number };
+export type SourceCompileResult =
+  | { readonly ok: true; readonly ast: StrategyAst; readonly warnings: readonly Diagnostic[]; readonly graph: StrategyGraph; readonly sourceMap: Readonly<Record<string, SourceSpan>> }
+  | { readonly ok: false; readonly errors: readonly (SourceMappedDiagnostic | SourceDiagnostic)[]; readonly graph: StrategyGraph; readonly sourceMap: Readonly<Record<string, SourceSpan>> };
+
+/** Compiles source text through the handwritten frontend and existing graph compiler. @example `compileSource('buy when close > 2\\nsell when close < 1')` emits the same AST shape as `compile()`. */
+export function compileSource(source: string, config: unknown = {}): SourceCompileResult {
+  const lexed = lex(source);
+  const parsed = lexed.diagnostics.some((item) => item.message.includes("closing quote"))
+    ? { statements: [], diagnostics: [] }
+    : parse(lexed.tokens);
+  const frontErrors = [...lexed.diagnostics, ...parsed.diagnostics];
+  const lowered = toGraph(parsed.statements, sourceEnd(source));
+  if (frontErrors.length === 0) frontErrors.push(...lowered.diagnostics);
+  const graph = lowered.graph ?? { nodes: [], edges: [] };
+  const sourceMap = lowered.sourceMap;
+  if (frontErrors.length > 0) return { ok: false, errors: frontErrors.sort((a, b) => a.line - b.line || a.startColumn - b.startColumn), graph, sourceMap };
+  const compiled = compile(graph, config);
+  if (compiled.ok) return { ...compiled, graph, sourceMap };
+  const errors = compiled.errors.map((item) => {
+    const span = item.nodeId === null ? undefined : sourceMap[item.nodeId];
+    return { ...item, ...(span ? { line: span.line, column: span.startColumn, endColumn: span.endColumn } : {}) };
+  });
+  return { ok: false, errors, graph, sourceMap };
+}
+
+/** Calculates the exclusive-end source position while treating tabs as one column. @example `sourceEnd("a\\r\\nb")` is line 2, column 2. */
+function sourceEnd(source: string): SourceSpan {
+  let line = 1, column = 1;
+  for (let i = 0; i < source.length; i += 1) {
+    const ch = source[i];
+    if (ch === "\r" && source[i + 1] === "\n") { i += 1; line += 1; column = 1; }
+    else if (ch === "\r" || ch === "\n") { line += 1; column = 1; }
+    else column += 1;
+  }
+  return { line, startColumn: column, endColumn: column };
+}
 
 /** Compiles the documented AI graph format and backtest config into the v1 Strategy AST. @example `compile(graph, {}).ok` is true for a valid graph with one STRATEGY node. */
 export function compile(graph: unknown, config: unknown = {}): CompileResult {

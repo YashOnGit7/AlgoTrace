@@ -89,3 +89,6 @@ Continue with Prompt 7 when requested. Prompt 6 strategy canvas and local browse
 
 
 - The web app reads `VITE_API_URL` with default `http://127.0.0.1:8000`; FastAPI currently allows only Vite origins `http://127.0.0.1:5173` and `http://localhost:5173`. Playwright checks both origins in Chromium. The page uses zero costs by default and displays 78 closed trades plus 79 total records (one is open).
+
+## Latest verified work — 2026-11-25
+The strategy language has three paired `.strategy` reference programs and one invalid source fixture for each AT-S001–AT-S006. Tests cover source locations, comments and title strings, CRLF/LF, missing final newline, statement interleaving, source-map translation, deterministic serialization, and fast-check properties. Real WASM compiles the three source examples and checks the same trade counts as the vectorbt fixtures on RELIANCE.NS and TCS.NS. See [phase 7 explanation](docs/phase-7-explained.md), [language spec](spec/strategy-language.md), and decisions 041–044.
