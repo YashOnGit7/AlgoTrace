@@ -1,0 +1,20 @@
+# Purpose: keeps text files LF-stable across platforms and prevents binary assets from text conversion.
+# Connects: Git checkout/commit behavior to reproducible tests and unchanged data files.
+* text=auto eol=lf
+
+*.agt1 binary
+*.png binary
+*.pdf binary
+*.docx binary
+*.wasm binary
+*.zip binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.otf binary
+*.xlsx binary
+*.xls binary
