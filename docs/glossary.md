@@ -75,5 +75,8 @@
 - **Strategy canvas:** a visual editor where node cards represent strategy operations and wires connect their inputs and outputs.
 - **Node port:** a named input or output socket on a graph node; each port accepts only specified value types.
 - **Dagre:** a graph layout library that places connected nodes in a readable left-to-right dependency order.
+- **Strategy Studio:** the app's code-first workspace where strategy text is compiled, previewed as a graph, and run against frozen prices.
+- **Read-only graph preview:** a visual picture generated from strategy code; it helps explain the program but cannot be edited separately.
+- **Line-number gutter:** the numbered strip beside the text editor that marks lines with compiler errors.
 - **Undo history:** saved earlier graph states that let a user reverse edits and redo them later.
 - **Compiler diagnostic:** the compiler's error or warning, including its code, friendly explanation, and node or input location.

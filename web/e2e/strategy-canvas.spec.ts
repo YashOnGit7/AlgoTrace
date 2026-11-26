@@ -46,6 +46,7 @@ async function wire(page: Page, sourceOp: string, sourceIndex: number, targetOp:
 test("builds the crossover from the palette and shows compiler diagnostics on the canvas", async ({ page }) => {
   test.setTimeout(30_000);
   await page.goto("/");
+  await page.getByRole("tab", { name: "Visual canvas (advanced)" }).click();
   await expect(page.getByTestId("empty-canvas")).toBeVisible();
   for (const op of ["PRICE", "SMA", "SMA", "CROSSES_ABOVE", "CROSSES_BELOW", "STRATEGY"]) {
     await page.getByTestId(`palette-${op}`).click();

@@ -531,3 +531,13 @@
 - Approved details: assignments/rules/settings can be interleaved after an optional first-line title; assignments must precede use; comments can trail statements while `#` inside a title is preserved; CRLF/LF and missing final newline are equivalent; positions are 1-based with end-exclusive spans and tabs count as one column. Unterminated title text is AT-S002. Uppercase keyword/function hints direct the user to lowercase spelling.
 - Every generated node has a source span, and graph compiler errors map to source locations. Unary minus lowers to `SUB(CONSTANT(0), operand)`.
 - Verified `pnpm test` (45 tests), `pnpm typecheck`, and `pnpm test:wasm` (4 tests). The WASM integration compiles all three language examples and confirms reference trade counts on RELIANCE.NS and TCS.NS.
+
+
+## 2026-11-26 - Strategy Studio
+- Made Strategy Studio the default front page with Strategy Studio, Visual canvas (advanced), and Quick demo navigation tabs. The page includes symbol/date/capital/charge controls and the three language examples plus a blank template.
+- Added the source editor with 300 ms compile feedback, source-line errors, saved browser draft, .strategy file open/save, Ctrl+Enter, and language help.
+- Added the read-only graph preview using existing canvas node components and dagre. When source errors exist, the preview stays safe and explains that it may be incomplete.
+- Reused the API, worker, WASM client, and equity chart for result runs. The page selects zero slippage to match the checked-in vectorbt reference when comparing zero-cost output.
+- Added editor store tests and two Playwright browser flows. The browser run verified the first-page tabs and Run button, 78 closed RELIANCE.NS trades and reference equity, and source error correction plus graph rendering.
+- Added decisions 047-049, docs/phase-8-explained.md, glossary entries, and viva questions.
+- Verified pnpm test, pnpm typecheck, pnpm test:wasm, and local Playwright test:e2e.

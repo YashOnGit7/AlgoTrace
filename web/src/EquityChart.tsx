@@ -3,10 +3,10 @@ import { useEffect, useRef } from "react";
 import { createChart, LineSeries, type IChartApi, type UTCTimestamp } from "lightweight-charts";
 
 export interface EquityPoint { readonly timestamp: number; readonly equity: number }
-interface EquityChartProps { readonly points: readonly EquityPoint[] }
+interface EquityChartProps { readonly points: readonly EquityPoint[]; readonly testId?: string }
 
 /** Creates and updates the account equity curve. @example `<EquityChart points={dailyValues} />` draws one point per price bar. */
-export function EquityChart({ points }: EquityChartProps): React.JSX.Element {
+export function EquityChart({ points, testId = "equity-chart" }: EquityChartProps): React.JSX.Element {
   const host = useRef<HTMLDivElement>(null);
   const chart = useRef<IChartApi | null>(null);
   const series = useRef<ReturnType<IChartApi["addSeries"]> | null>(null);
@@ -36,5 +36,5 @@ export function EquityChart({ points }: EquityChartProps): React.JSX.Element {
     chart.current?.timeScale().fitContent();
   }, [points]);
 
-  return <div className="equity-chart" data-testid="equity-chart" ref={host} aria-label="Daily account equity curve" />;
+  return <div className="equity-chart" data-testid={testId} ref={host} aria-label="Daily account equity curve" />;
 }

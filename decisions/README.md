@@ -11,4 +11,4 @@ flowchart LR
 ```
 
 
-Records 041–044 cover the handwritten strategy lexer/parser, the v1 language design, source maps, and lowering unary minus through existing graph nodes.
+Records 041–044 cover the handwritten strategy lexer/parser, the v1 language design, source maps, and lowering unary minus through existing graph nodes. Records 047–049 cover the code-first Strategy Studio, its no-dependency editor, and first-run settings.

@@ -39,7 +39,7 @@ export function CanvasNodeView({ id, data, selected }: NodeProps<CanvasNode>): R
   useEffect(() => { updateNodeInternals(id); }, [data.errors.length, data.op, data.warnings.length, id, inputPorts.length, updateNodeInternals]);
 
   return (
-    <article className={`strategy-node ${selected ? "is-selected" : ""} ${data.errors.length ? "has-error" : ""}`} data-testid={`canvas-node-${data.op}`}>
+    <article className={`strategy-node ${selected ? "is-selected" : ""} ${data.errors.length || data.sourceError ? "has-error" : ""} ${data.readOnly ? "is-read-only" : ""}`} data-testid={`canvas-node-${data.op}`}>
       {inputPorts.map((port, index) => (
         <div className="input-port-row" key={port}>
           <Handle id={port} type="target" position={Position.Left} className={`port-handle ${handleColor(data.portTypes[port] ?? [])}`} style={{ top: 54 + index * 25 }} />
@@ -53,7 +53,8 @@ export function CanvasNodeView({ id, data, selected }: NodeProps<CanvasNode>): R
         {data.errors.length === 0 && data.warnings.length > 0 && <span className="node-count warning-count" aria-label={`${data.warnings.length} warnings`}>{data.warnings.length} warning</span>}
       </header>
       <div className="strategy-node-ports">{described}</div>
-      {rules.length > 0 && <div className="node-parameters">{rules.map((rule) => (
+      {data.readOnly && rules.length > 0 && <p className="readonly-params">{rules.filter((rule) => data.params[rule.key] !== undefined).map((rule) => `${rule.label}: ${String(data.params[rule.key])}`).join(" · ")}</p>}
+      {!data.readOnly && rules.length > 0 && <div className="node-parameters">{rules.map((rule) => (
         <ParameterEditor key={rule.key} nodeId={id} value={data.params[rule.key]} rule={rule} onChange={(value) => updateParam(id, rule.key, value)} />
       ))}</div>}
       {(data.errors.length > 0 || data.warnings.length > 0) && <div className="node-diagnostics">

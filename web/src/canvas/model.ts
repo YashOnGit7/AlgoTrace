@@ -10,6 +10,8 @@ export interface CanvasNodeData extends Record<string, unknown> {
   readonly warnings: readonly Diagnostic[];
   readonly portTypes: Readonly<Record<string, readonly string[]>>;
   readonly outputType: string;
+  readonly readOnly?: boolean;
+  readonly sourceError?: boolean;
 }
 
 export interface CanvasEdgeData extends Record<string, unknown> {

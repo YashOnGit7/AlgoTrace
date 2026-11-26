@@ -43,6 +43,12 @@ The saved JSON contains only the spec graph: node IDs, node types, parameters, a
 
 ## Why use dagre for automatic graph layout?
 Dagre positions nodes based on their dependencies so data usually flows from left to right. Before any wires exist, there is no dependency order, so the canvas uses a spaced grid to keep newly added cards apart.
+
+## Why is the Strategy Studio graph read-only?
+The strategy text is the source of truth. The compiler generates the graph from that text, so allowing independent graph edits could make the two versions disagree. The graph is an explanation of the code and remains safe to display when the source has an error.
+
+## How does the Strategy Studio connect code to a backtest?
+The page compiles the source after a short pause, shows compiler locations beside the code, and sends a valid AST with fetched AGT1 price bytes to the existing Web Worker. The worker runs the Rust/WASM engine and returns equity and metrics for the results view.
 # Strategy language
 
 **Q: How does the handwritten strategy language frontend work?**  

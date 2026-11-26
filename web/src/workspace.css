@@ -3,6 +3,6 @@
 .workspace-nav { align-items: center; background: #173b35; color: #f4faf6; display: flex; height: 56px; justify-content: space-between; padding: 0 max(20px, calc((100vw - 1440px) / 2)); }
 .workspace-brand { color: inherit; font-size: 16px; font-weight: 800; letter-spacing: -.02em; text-decoration: none; }
 .workspace-nav [role="tablist"] { display: flex; gap: 6px; }
-.workspace-nav [role="tab"] { background: transparent; border: 0; border-radius: 7px; color: #d8e7e0; cursor: pointer; font-size: 13px; padding: 9px 13px; }
+.workspace-nav [role="tab"] { background: transparent; border: 0; border-radius: 7px; color: #d8e7e0; cursor: pointer; font-size: 15px; padding: 9px 13px; }
 .workspace-nav [role="tab"][aria-selected="true"] { background: #e6f2eb; color: #173b35; font-weight: 700; }
 @media (max-width: 600px) { .workspace-nav { padding-inline: 12px; } .workspace-nav [role="tab"] { font-size: 12px; padding: 8px; } }
