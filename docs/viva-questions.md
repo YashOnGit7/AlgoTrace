@@ -49,6 +49,18 @@ The strategy text is the source of truth. The compiler generates the graph from 
 
 ## How does the Strategy Studio connect code to a backtest?
 The page compiles the source after a short pause, shows compiler locations beside the code, and sends a valid AST with fetched AGT1 price bytes to the existing Web Worker. The worker runs the Rust/WASM engine and returns equity and metrics for the results view.
+
+## How does the AI assistant avoid inventing strategy syntax?
+FastAPI loads `/spec/strategy-language.md` at request time and puts that exact specification in the system prompt. The prompt also includes the three checked-in reference programs and an example using named values with `and` and `or`. The returned source still has to pass `compileSource`; the AI cannot bypass the compiler.
+
+## Can the AI start a backtest?
+No. The assistant only writes code or asks one question. AlgoTrace checks generated code with the compiler, retries a correction at most twice, then leaves the source for the user to review. The user must press the separate Run backtest button.
+
+## What happens if Groq is unavailable?
+The page explains that AI is unavailable, keeps the strategy Examples dropdown usable, and offers Offline demo mode. That mode maps exactly five fixed sentences to compiler-tested programs, makes no provider request, and labels the result as a built-in example rather than AI output.
+
+## How do you keep reasoning text and the API key private?
+The browser talks only to FastAPI. The key and model name are read from ignored `api/.env`. The Groq request asks for low reasoning effort and excludes reasoning, and the API reads only the final message content; it does not log the key or full request headers.
 # Strategy language
 
 **Q: How does the handwritten strategy language frontend work?**  

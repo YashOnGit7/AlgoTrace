@@ -7,8 +7,11 @@ export interface CodeStorage { getItem(key: string): string | null; setItem(key:
 export interface StudioEditorState {
   readonly source: string;
   readonly activeExample: string;
+  readonly assistantPreviousSource: string | null;
   setSource(source: string): void;
   loadExample(name: string, source: string): void;
+  applyAssistantCode(source: string, previousSource?: string): void;
+  undoAssistantChange(): void;
 }
 
 /** Creates a small editor store and remembers source in the supplied browser storage. @example `createStudioEditorStore(memoryStorage).getState().source` starts with the saved text. */
@@ -18,14 +21,26 @@ export function createStudioEditorStore(storage?: CodeStorage) {
   return create<StudioEditorState>((set) => ({
     source: initialSource,
     activeExample: "blank",
+    assistantPreviousSource: null,
     setSource: (source) => {
       availableStorage?.setItem(STUDIO_CODE_KEY, source);
       set({ source, activeExample: "custom" });
     },
     loadExample: (name, source) => {
       availableStorage?.setItem(STUDIO_CODE_KEY, source);
-      set({ source, activeExample: name });
+      set({ source, activeExample: name, assistantPreviousSource: null });
     },
+    applyAssistantCode: (source, previousSource) => {
+      set((state) => {
+        availableStorage?.setItem(STUDIO_CODE_KEY, source);
+        return { source, activeExample: "assistant", assistantPreviousSource: previousSource ?? state.assistantPreviousSource ?? state.source };
+      });
+    },
+    undoAssistantChange: () => set((state) => {
+      if (state.assistantPreviousSource === null) return state;
+      availableStorage?.setItem(STUDIO_CODE_KEY, state.assistantPreviousSource);
+      return { source: state.assistantPreviousSource, activeExample: "custom", assistantPreviousSource: null };
+    }),
   }));
 }
 

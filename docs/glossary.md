@@ -75,6 +75,12 @@
 - **Strategy canvas:** a visual editor where node cards represent strategy operations and wires connect their inputs and outputs.
 - **Node port:** a named input or output socket on a graph node; each port accepts only specified value types.
 - **Dagre:** a graph layout library that places connected nodes in a readable left-to-right dependency order.
+- **AI provider proxy:** the local API route that sends a user's sentence to Groq while keeping the API key out of the browser.
+- **Groq chat completions:** the provider endpoint that receives role-based messages and returns a model's final answer.
+- **Reasoning effort:** a setting for how much internal work a reasoning model uses; the assistant requests low effort and excludes reasoning from its returned text.
+- **Repair loop:** a bounded process that sends compiler messages and the previous code back to the model for correction; this assistant tries at most twice.
+- **Offline demo mode:** five fixed sentence-to-code examples that work without the AI provider and are labeled as built-in answers.
+- **In-memory rate limit:** a counter held in local API process memory that restricts each client to a set number of requests per minute.
 - **Strategy Studio:** the app's code-first workspace where strategy text is compiled, previewed as a graph, and run against frozen prices.
 - **Read-only graph preview:** a visual picture generated from strategy code; it helps explain the program but cannot be edited separately.
 - **Line-number gutter:** the numbered strip beside the text editor that marks lines with compiler errors.

@@ -1,3 +1,66 @@
+## 2026-11-26 — Complete project guide and presentation notes
+
+### What was done
+- Added `docs/PROJECT_COMPLETE_GUIDE.md`, a plain-language end-to-end reference covering the product boundary, architecture, compiler and strategy language, engine/trading assumptions, costs, metrics, dataset/API, test evidence, setup, limitations, and future scope.
+- Added a slide-by-slide summary and speaking outline for the 11-slide presentation, plus 52 likely professor questions with concise, evidence-aligned answers.
+- Included the important qualifications: adjusted prices and survivorship bias, open versus closed trade counts, the named SBIN/vectorbt G15 exception, mocked AI provider tests, and the distinction between implemented features and future ideas.
+- Linked the guide from `projects.md` and noted the Groq diagnostic script and that live provider availability is not proven by fake-provider tests.
+
+### Files touched
+- `docs/PROJECT_COMPLETE_GUIDE.md`, `projects.md`, and `notes.md`.
+
+### Verification
+- Reviewed the guide against the checked-in specification, project state, data/reference/API documentation, and the current 11-slide deck outline.
+- Documentation-only change; no application tests were run.
+
+### Open questions
+- None for the guide. The model family named in the original brief differs from the environment-configured model used by the current assistant; the guide calls this out instead of silently changing either source.
+
+### TODO for the next session
+- Use the guide to rehearse the defense and resolve documentation inconsistencies if the project owner wants them changed.
+
+## 2026-11-26 — Strategy Studio AI assistant
+
+### What was done
+- Added `POST /api/generate` with Pydantic input/output validation, in-memory 20/minute client limiting, a 20-second provider timeout, and direct HTTPX calls to Groq's chat-completions endpoint.
+- The API reads `GROQ_API_KEY` and `GROQ_MODEL` from ignored `api/.env`. The system prompt loads `/spec/strategy-language.md` and the three reference `.strategy` files at request time, then adds a named AND/OR sample.
+- Groq requests use low reasoning effort and `include_reasoning: false`; the response parser reads only final content, strips whole-message Markdown fences, and handles questions, empty/malformed/truncated replies, and upstream failures.
+- Added the Assistant panel with four sample sentences, compiler validation and at most two repair tries, clarifying questions, undo, privacy text, and an offline-only set of exactly five fixed examples. All five fixed programs compile.
+- Kept Run as a separate user action. Added mocked API/assistant tests and browser flows; tests make no real provider call.
+
+### Files touched
+- `api/app/ai_assistant.py`, `api/app/main.py`, `api/app/README.md`, `api/README.md`, `api/requirements.txt`, `api/.env.example`, `api/tests/test_ai_assistant.py`, `api/tests/test_data_api.py`.
+- `web/src/studio/AssistantPanel.tsx`, `assistantClient.ts`, `assistantClient.test.ts`, `assistant.css`, `offlineExamples.ts`, `offlineExamples.test.ts`, `store.ts`, `store.test.ts`, `web/src/studio/README.md`, `web/src/studio/StrategyStudio.tsx`, `web/e2e/strategy-assistant.spec.ts`.
+- `README.md`, `web/README.md`, `decisions/050-groq-direct-http-and-env.md` through `052-fixed-offline-assistant-demo.md`, `docs/phase-9-explained.md`, glossary, viva questions, `projects.md`, and this log.
+
+### Decisions made
+- [050](decisions/050-groq-direct-http-and-env.md): direct HTTPX provider call and local environment configuration; no Groq SDK.
+- [051](decisions/051-compile-before-user-run.md): compile and repair generated code at most twice, then leave execution to the user.
+- [052](decisions/052-fixed-offline-assistant-demo.md): five fixed, compiler-tested offline replies with explicit non-AI labeling.
+
+### Problems hit and fixes
+- The first API test used Starlette's `TestClient`, which requires `httpx2` in the installed latest Starlette, outside the approved dependency list. Tests now call the async handler with a fake provider without adding that package. On this Windows sandbox, creating a default asyncio loop also tries to open a local socket; the fake-only test helper drives the immediately completed coroutine without any socket or real provider request.
+- Installing the approved pinned HTTPX and dotenv dependencies initially hit restricted DNS; installation succeeded after the environment-approved package install.
+
+### Things learned or gotchas
+- The current Groq GPT-OSS API supports `reasoning_effort: low` and `include_reasoning: false`. GPT-OSS does not accept `reasoning_format`; the implementation uses the supported include flag.
+- Changing either `api/.env` value requires restarting Uvicorn. The web app never receives the provider key.
+- The compiler's source language remains authoritative; the prompt reads its checked-in spec rather than carrying a second handwritten grammar.
+
+### Commands that worked
+- `api\.venv\Scripts\python.exe -m pip install --no-input -r api\requirements.txt`
+- `api\.venv\Scripts\python.exe -m pytest api\tests` — 25 passed (0.77s).
+- `pnpm test` — 39 compiler tests and 15 web unit tests passed.
+- `pnpm typecheck` — compiler and web checks passed.
+- `pnpm test:wasm` — 4 real-WASM integration tests passed.
+- `pnpm --filter @algotrace/web test:e2e` — 6 browser tests passed (20.3s); assistant responses were mocked.
+
+### Open questions
+- None. Automated tests do not call Groq; a manual provider check requires the user to create `api/.env`.
+
+### TODO for the next session
+- Continue with the next project feature when requested.
+
 ## 2026-11-22 — Prompt 6 browser drag synchronization
 
 ### Trace finding and fix

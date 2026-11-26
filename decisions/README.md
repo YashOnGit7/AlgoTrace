@@ -11,4 +11,4 @@ flowchart LR
 ```
 
 
-Records 041–044 cover the handwritten strategy lexer/parser, the v1 language design, source maps, and lowering unary minus through existing graph nodes. Records 047–049 cover the code-first Strategy Studio, its no-dependency editor, and first-run settings.
+Records 041–044 cover the handwritten strategy lexer/parser, the v1 language design, source maps, and lowering unary minus through existing graph nodes. Records 047–049 cover the code-first Strategy Studio, its no-dependency editor, and first-run settings. Records 050–052 cover direct Groq access from FastAPI, compile-before-run review, and the labeled offline examples. Record 053 covers safe Groq diagnostics and the minimal retry when reasoning options are explicitly rejected.

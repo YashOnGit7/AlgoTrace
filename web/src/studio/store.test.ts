@@ -27,4 +27,16 @@ describe("Strategy Studio editor store", () => {
     store.getState().loadExample("Moving-average crossover", "fast = sma(close, 10)");
     expect(store.getState()).toMatchObject({ source: "fast = sma(close, 10)", activeExample: "Moving-average crossover" });
   });
+
+  it("undoes an assistant replacement back to the user's previous code", () => {
+    const storage = makeStorage();
+    const store = createStudioEditorStore(storage);
+    store.getState().setSource("my hand-written program");
+    store.getState().applyAssistantCode("assistant draft", "my hand-written program");
+    store.getState().applyAssistantCode("assistant repair", "my hand-written program");
+    store.getState().undoAssistantChange();
+
+    expect(store.getState()).toMatchObject({ source: "my hand-written program", assistantPreviousSource: null });
+    expect(storage.getItem(STUDIO_CODE_KEY)).toBe("my hand-written program");
+  });
 });

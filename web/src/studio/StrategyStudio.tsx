@@ -6,6 +6,7 @@ import { EquityChart, type EquityPoint } from "../EquityChart.js";
 import type { TradeColumnName } from "../engine/wasmClient.js";
 import { locationForError, useStudioEditorStore } from "./store.js";
 import { ReadOnlyGraph } from "./ReadOnlyGraph.js";
+import { AssistantPanel } from "./AssistantPanel.js";
 import "./studio.css";
 
 const API_URL = (import.meta.env.VITE_API_URL ?? "http://127.0.0.1:8000").replace(/\/+$/, "");
@@ -169,6 +170,7 @@ export function StrategyStudio(): React.JSX.Element {
     </section>
     <section className="studio-workspace">
       <div className="studio-editor-column">
+        <AssistantPanel source={source} config={config} endpoint={`${API_URL}/api/generate`} />
         <div className="studio-editor-heading"><div><h2>Strategy code</h2><span>Saved in this browser as you type</span></div><div className="studio-file-actions"><button type="button" onClick={() => fileInput.current?.click()}>Open file</button><button type="button" onClick={saveSourceFile}>Save file</button><input ref={fileInput} type="file" accept=".strategy,.txt,text/plain" hidden onChange={(event) => void openSourceFile(event.currentTarget.files?.[0])} /></div></div>
         <div className="studio-editor" data-testid="studio-editor"><div className="studio-gutter" aria-hidden="true">{lines.map((_, index) => <span className={errors.some((item) => item.line === index + 1) ? "has-line-error" : ""} key={index}>{String(index + 1).padStart(2, "0")}</span>)}</div>
           <textarea ref={textarea} aria-label="Strategy code" spellCheck={false} value={source} onChange={(event) => setSource(event.currentTarget.value)} onScroll={(event) => { const gutter = event.currentTarget.previousElementSibling; if (gutter instanceof HTMLElement) gutter.scrollTop = event.currentTarget.scrollTop; }} />

@@ -7,6 +7,7 @@ import tempfile
 import pytest
 from fastapi import HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.datastructures import Headers
 
 from app import main
 from app.price_data import PriceBar, decode_price_file, encode_price_file, utc_midnight
@@ -95,4 +96,44 @@ def test_cors_allows_only_local_vite_web_origins_and_exposes_bar_count() -> None
     cors = next(middleware for middleware in main.app.user_middleware if middleware.cls is CORSMiddleware)
 
     assert cors.kwargs["allow_origins"] == ["http://localhost:5173", "http://127.0.0.1:5173"]
+    assert cors.kwargs["allow_methods"] == ["GET", "POST"]
+    assert cors.kwargs["allow_headers"] == ["Content-Type"]
     assert cors.kwargs["expose_headers"] == ["X-Bar-Count"]
+
+
+@pytest.mark.parametrize("origin", ["http://127.0.0.1:5173", "http://localhost:5173"])
+def test_cors_adds_allow_origin_to_post_response(origin: str) -> None:
+    """Check CORS on a completed POST response, not only on the preflight path.
+
+    Example: a browser POST from either configured Vite origin receives its own
+    `Access-Control-Allow-Origin` header on the 200 response.
+    """
+    cors_settings = next(middleware.kwargs for middleware in main.app.user_middleware if middleware.cls is CORSMiddleware)
+    cors = CORSMiddleware(lambda scope, receive, send: None, **cors_settings)
+
+    async def send_post():
+        messages = []
+
+        async def send(message):
+            messages.append(message)
+
+        request_headers = Headers(raw=[(b"origin", origin.encode()), (b"content-type", b"application/json")])
+        await cors.send(
+            {"type": "http.response.start", "status": 200, "headers": [(b"content-type", b"application/json")]},
+            send,
+            request_headers,
+        )
+        return messages
+
+    coroutine = send_post()
+    try:
+        coroutine.send(None)
+    except StopIteration as complete:
+        response_messages = complete.value
+    else:
+        pytest.fail("CORS response header check unexpectedly waited on asynchronous I/O")
+    start = next(message for message in response_messages if message["type"] == "http.response.start")
+    headers = {key.decode().lower(): value.decode() for key, value in start["headers"]}
+
+    assert start["status"] == 200
+    assert headers["access-control-allow-origin"] == origin
